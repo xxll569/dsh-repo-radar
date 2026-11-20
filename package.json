@@ -1,0 +1,60 @@
+{
+  "name": "dsh-repo-radar",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "author": "xxll569",
+  "description": "An IntelliJ IDEA-style multi-repository Git workbench plugin for DeepSeek Harness (DSH). Automatically discovers nested subdirectories, submodules, and worktrees across your workspace with Commit tree, Side-by-Side Diff, Git Log, Branch & Stash management.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "git",
+    "multi-repo",
+    "nested-git",
+    "git-workbench",
+    "intellij-idea",
+    "repo-radar"
+  ],
+  "homepage": "https://github.com/xxll569/dsh-repo-radar#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xxll569/dsh-repo-radar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xxll569/dsh-repo-radar/issues"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "git-scanner.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
+    }
+  }
+}

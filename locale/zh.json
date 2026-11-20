@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "DSH RepoRadar · 多 Git 仓库工作台",
+    "description": "在 DeepSeek Harness (DSH) 会话顶部视图栏新增仿 IntelliJ IDEA 风格的多仓库 Git 工作台。自动穿透扫描工作区深层子目录中的嵌套仓库、Submodule 与 Worktree，支持全部 Fetch、目录树勾选提交（Amend / Commit and Push / Rollback）、并排与统一 Diff 对比及变更跳转、三栏式 Git 日志（分支树筛选、彩色 Ref 旗标、单文件 Diff、Cherry-pick、撤销上次提交），以及分支与 Stash 储藏管理，并同步提供 multi_git Agent 工具。",
+    "detail": "docs/DETAIL.zh.md"
+  }
+}

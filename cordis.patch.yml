@@ -1,0 +1,4 @@
+- insert:
+    - id: dsh-repo-radar
+      name: dsh-repo-radar
+      config: {}
