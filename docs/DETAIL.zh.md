@@ -1,1 +1,1 @@
-![多 Git 仓库会话视图示意图：左侧展示工作区下的多个子目录仓库，右侧展示选中仓库的变更文件与 Diff 预览](preview.svg)
+![DSH RepoRadar 在 DeepSeek Harness 中的实际界面：左侧多仓库栏、三栏式 Git 日志与分支树/彩色标签、右上提交变更文件树与右下角 Side-by-Side 双栏 Diff 预览](preview.jpg)

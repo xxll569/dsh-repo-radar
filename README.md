@@ -23,7 +23,7 @@ By default, **DeepSeek Harness (DSH)** only detects `.git` at the workspace root
 **DSH RepoRadar** (`dsh-repo-radar`) automatically scans workspace subdirectories to discover all Git repositories and embeds an **IntelliJ IDEA New UI** style Git tool window directly in the DSH conversation view bar—complete with a directory-tree Commit workflow, Side-by-Side Diff, 3-pane Git Log, Branch & Stash management, and the `multi_git` agent tool.
 
 <p align="center">
-  <img src="./docs/preview.svg" width="640" alt="DSH RepoRadar preview" />
+  <img src="./docs/preview.jpg" width="100%" alt="DSH RepoRadar — IntelliJ IDEA-style multi-repository Git workbench inside DeepSeek Harness" />
 </p>
 
 ---

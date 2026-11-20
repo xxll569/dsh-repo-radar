@@ -23,7 +23,7 @@
 **DSH RepoRadar**（`dsh-repo-radar`）会自动穿透扫描工作区子目录，探测出所有 Git 仓库，并在 DSH 会话顶部视图栏嵌入一套 **IntelliJ IDEA New UI** 风格的 Git 工作台——支持目录树勾选提交、并排 Diff、三栏式 Git 日志、分支与 Stash 管理，并同步向 AI 提供 `multi_git` 工具。
 
 <p align="center">
-  <img src="./docs/preview.svg" width="640" alt="DSH RepoRadar 界面示意图" />
+  <img src="./docs/preview.jpg" width="100%" alt="DSH RepoRadar — DeepSeek Harness 内置仿 IntelliJ IDEA 多仓库 Git 工作台实拍截图" />
 </p>
 
 ---
