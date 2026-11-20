@@ -1,64 +1,114 @@
-# DSH RepoRadar (`dsh-repo-radar`)
-
-An **IntelliJ IDEA-style multi-repository Git workbench plugin** for **DeepSeek Harness (DSH)**.
-
-By default, DeepSeek Harness only checks the workspace root for `.git`. In real-world monorepos, multi-service workspaces, or projects where the actual Git repository lives inside nested subdirectories (e.g. `code/app/`, `services/api/`, `frontend/`), DSH cannot detect or manage those repositories together. **DSH RepoRadar** automatically scans workspace subdirectories to discover every Git repository and brings an IDEA-style Git tool window right into your conversation view.
+<div align="center">
+  <img src="./icon.svg" width="72" height="72" alt="DSH RepoRadar icon" />
+  <h1>DSH RepoRadar</h1>
+  <p>
+    <strong>IntelliJ IDEA-style multi-repository Git workbench plugin for DeepSeek Harness (DSH)</strong>
+  </p>
+  <p>
+    <a href="./README.md">English</a> · <a href="./README.zh-CN.md">简体中文</a> ·
+    <a href="https://github.com/xxll569/dsh-repo-radar/releases">Releases</a> ·
+    <a href="https://github.com/xxll569/dsh-repo-radar/issues">Issues</a>
+  </p>
+  <p>
+    <img src="https://img.shields.io/badge/DeepSeek%20Harness-Plugin-3574F0" alt="DSH Plugin" />
+    <img src="https://img.shields.io/badge/version-1.0.0-2A9D8F" alt="Version 1.0.0" />
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
+  </p>
+</div>
 
 ---
 
-## Features / 核心功能
+By default, **DeepSeek Harness (DSH)** only detects `.git` at the workspace root. When your real repositories sit in nested subdirectories (e.g., `code/backend/`, `code/frontend/`, `refs/sdk/`) or your workspace contains multiple services, submodules, and worktrees, DSH cannot display or manage them together.
 
-- **Automatic Nested & Multi-Repo Discovery**
-  - Discovers root repos, nested subdirectory repos, parent repos, Git submodules, and Git worktrees (default depth 6) while skipping heavy folders (`node_modules`, `target`, `dist`, `.git`, etc.).
-  - Two-tier refresh: fast lightweight status refresh on tab open and after AI turns finish, plus full directory rescan on demand.
-  - **Fetch All** across all discovered repositories concurrently.
-- **IntelliJ IDEA New UI Style Tool Window**
-  - **Repositories Sidebar**: Collapsible flat repository list with search, **Dirty only** filter, branch indicator, and pending file counts.
+**DSH RepoRadar** (`dsh-repo-radar`) automatically scans workspace subdirectories to discover all Git repositories and embeds an **IntelliJ IDEA New UI** style Git tool window directly in the DSH conversation view bar—complete with a directory-tree Commit workflow, Side-by-Side Diff, 3-pane Git Log, Branch & Stash management, and the `multi_git` agent tool.
+
+<p align="center">
+  <img src="./docs/preview.svg" width="640" alt="DSH RepoRadar preview" />
+</p>
+
+---
+
+## Features
+
+- **Automatic Nested & Multi-Repository Discovery**
+  - Discovers root repos, nested subdirectory repos, parent repos, Git submodules, and Git worktrees (default scan depth `6`) while skipping build/cache directories (`node_modules`, `target`, `dist`, `.git`, etc.).
+  - Two-tier refresh: lightweight status refresh on tab return or AI turn completion, plus full directory rescan on demand.
+  - **Fetch All** to concurrently run `git fetch --all --prune` across every discovered repository.
+- **IntelliJ IDEA New UI Tool Window**
+  - **Repositories Sidebar**: Collapsible repository switcher with search, *Dirty only* filter, branch name, and pending change count.
   - **Commit Tab**:
-    - Compressed directory tree (*Compact Middle Packages* style) with tri-state checkboxes, IDEA file-status color coding (`Modified`, `Added`, `Deleted`, `Unversioned`, `Conflict`), and flat/tree toggle.
-    - Check-to-commit workflow (`Commit`, `Commit and Push...`, `Amend`), batch & single-file `Rollback` with confirmation dialog.
+    - Compressed directory tree (*Compact Middle Packages* style) with tri-state checkboxes, IDEA file-status colors (`Modified`, `Added`, `Deleted`, `Unversioned`, `Conflict`), and Tree/Flat toggle.
+    - Check-to-commit workflow supporting **Commit**, **Commit and Push...**, **Amend**, and batch or single-file **Rollback** with confirmation dialog.
   - **Diff Viewer**:
-    - **Side-by-Side** and **Unified** diff modes with gutter line numbers, 3px gutter change markers, and `↑` / `↓` hunk navigation.
+    - **Side-by-Side** and **Unified** diff modes with 3px gutter change markers, line numbers, `+N -M` stats, and `↑` / `↓` hunk navigation.
   - **Git Log Tab (3-Pane)**:
     - Left **Branches Tree** (`HEAD`, `All`, `Local`, `Remote`) with click-to-filter, quick `Checkout`, and `+` New Branch.
-    - Center **Commit Table** with graph rail, colored **HEAD / Local / Remote / Tag** ref pills, text or **commit hash** search, author filter, sort order toggle, pagination (`Load more`), and **Undo Commit** (`git reset --soft HEAD~1`).
-    - Right **Commit Inspector** with changed-files directory tree (`+N -M` numstat), `Cherry-pick`, hash copy, and single-file diff preview.
-  - **Header Popovers**:
-    - Branch switcher (`Create`, `Checkout`, `Checkout Remote`, `Merge`, `Delete`, and `Remotes` URL copy).
-    - **Stash** manager (`Stash`, `Apply`, `Pop`, `Drop`).
+    - Center **Commit Table** with graph rail, colored ref pills (`HEAD`, local, remote, tags), search by text or commit hash, author filter, sort order toggle, pagination (`Load more`), and **Undo Commit** (`git reset --soft HEAD~1`).
+    - Right **Commit Inspector** with changed-files directory tree (`+N -M` numstat), **Cherry-pick**, hash copy, and single-file diff preview.
+  - **Branch & Stash Popovers**:
+    - Create, checkout, merge, and delete local branches; checkout remote tracking branches; copy remote URLs; and save, apply, pop, or drop stashes.
 - **Shared `multi_git` Agent Tool**
-  - Exposes the same repository discovery and Git operations (`scan`, `log`, `diff`, `commit_selected`, `rollback`, `checkout`, `stash_*`, `fetch`, `pull`, `push`, etc.) to the DSH coding agent.
+  - Exposes the exact same repository discovery, log, diff, and safe Git operations to the DSH AI agent.
 
 ---
 
-## Installation in DeepSeek Harness / 安装方式
+## Installation Guide
 
-### Option 1: Install from Local Directory (Recommended)
+### Prerequisites
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/xxll569/dsh-repo-radar.git
-   ```
-2. Open **DeepSeek Harness** → **Plugins** → **Add plugin** (local directory) and select the cloned `dsh-repo-radar` folder.
-   *(Or ask your DSH agent to install the local bundle directory via `plugin_manager`.)*
-3. Restart DSH once after initial installation so the Host plugin routes (`/api/multi-git.*`) and `multi_git` tool are mounted.
+- **DeepSeek Harness (DSH)** desktop/web installation
+- **`git`** installed and available on your system `PATH`
+
+### Method 1: Install via DSH GUI (Recommended)
+
+1. **Download or clone the plugin**:
+   - **Using Git**:
+     ```bash
+     git clone https://github.com/xxll569/dsh-repo-radar.git
+     ```
+   - **Or download a Release archive**: Download `Source code (zip)` from [Releases](https://github.com/xxll569/dsh-repo-radar/releases) and extract it to a permanent folder (e.g. `D:\dsh-plugins\dsh-repo-radar`).
+2. **Add the plugin in DeepSeek Harness**:
+   - Open **DSH** → click **Settings / Plugins** (插件管理) → choose **Add plugin** (添加本地插件目录).
+   - Select the `dsh-repo-radar` folder (the directory containing `package.json` and `cordis.patch.yml`).
+   - Confirm that **`DSH RepoRadar`** is installed and **Enabled**.
+3. **Restart DSH once**:
+   - Because this plugin registers Host backend routes (`/api/multi-git.*`) and the `multi_git` agent tool, restart DeepSeek Harness once after initial installation.
+4. **Open and use**:
+   - Enter any session with a workspace or working directory and click the **`Git repos`** (`Git 仓库`) tab in the top conversation view bar.
+
+### Method 2: Install via DSH Chat Agent
+
+If your DSH session has `plugin_manager` enabled, simply ask your DSH assistant:
+
+> *"Install the local DSH plugin at `D:\path\to\dsh-repo-radar`."*
+
+Then restart DSH once so the Host plugin takes effect.
+
+### Updating & Uninstalling
+
+- **Update**: Run `git pull` inside your cloned `dsh-repo-radar` directory (since local directory plugins link directly to your folder), then restart DSH.
+- **Disable / Uninstall**: Toggle off or remove **`dsh-repo-radar`** in **Plugins**. Turning it off cleanly removes the `Git repos` tab and the `multi_git` tool without touching your Git repositories.
 
 ---
 
-## Architecture / 项目结构
+## Project Structure
 
-- `package.json` & `cordis.patch.yml`: DSH bundle manifest and Cordis patch registration.
-- `index.js`: Host plugin registering `/api/multi-git.*` authenticated routes and the `multi_git` agent tool.
-- `git-scanner.js`: Non-interactive `git` runner (`GIT_TERMINAL_PROMPT=0`, `GIT_OPTIONAL_LOCKS=0`), directory discovery, status/log/diff/numstat parsers, and path-traversal guards.
-- `client.js`: Web UI slot (`conversation.view`) implemented in plain ESM + `React.createElement` using DSH CSS theme tokens (`--dsw-alias-*`) for native Light/Dark theme support.
-- `locale/en.json`, `locale/zh.json`, `docs/`, `icon.svg`: Localized plugin metadata and icon assets.
+```text
+dsh-repo-radar/
+├── package.json       # DSH bundle manifest & metadata
+├── cordis.patch.yml   # Cordis plugin registration patch
+├── index.js           # Host plugin: /api/multi-git.* routes & multi_git tool
+├── git-scanner.js     # Non-interactive git CLI runner, repo discovery & parsers
+├── client.js          # Web UI slot (conversation.view) in IDEA New UI style
+├── icon.svg           # Plugin icon (36x36 SVG)
+├── docs/              # Detail docs & preview illustration
+└── locale/            # Localized plugin metadata (en.json / zh.json)
+```
 
----
+## Security Notes
 
-## Security & Privacy
-
-- All `git` commands run locally and non-interactively via `execFile` / `spawn` (no shell interpolation, strict repo-root and path-containment validation).
-- Turning off or removing the bundle cleanly removes the `Git repos` conversation tab and the `multi_git` tool.
+- All `git` commands execute locally and non-interactively (`GIT_TERMINAL_PROMPT=0`, `GIT_OPTIONAL_LOCKS=0`) via `execFile` / `spawn` without shell string interpolation.
+- Repository paths and file paths are strictly validated against discovered repositories and checked for path traversal.
 
 ## License
 

@@ -1,0 +1,116 @@
+<div align="center">
+  <img src="./icon.svg" width="72" height="72" alt="DSH RepoRadar 图标" />
+  <h1>DSH RepoRadar</h1>
+  <p>
+    <strong>面向 DeepSeek Harness (DSH) 的仿 IntelliJ IDEA 多仓库 Git 工作台插件</strong>
+  </p>
+  <p>
+    <a href="./README.md">English</a> · <a href="./README.zh-CN.md">简体中文</a> ·
+    <a href="https://github.com/xxll569/dsh-repo-radar/releases">Releases 下载</a> ·
+    <a href="https://github.com/xxll569/dsh-repo-radar/issues">问题反馈</a>
+  </p>
+  <p>
+    <img src="https://img.shields.io/badge/DeepSeek%20Harness-Plugin-3574F0" alt="DSH Plugin" />
+    <img src="https://img.shields.io/badge/version-1.0.0-2A9D8F" alt="Version 1.0.0" />
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
+  </p>
+</div>
+
+---
+
+**DeepSeek Harness (DSH)** 默认仅检测工作区根目录是否存在 `.git`。在实际项目中，真实的代码仓库往往位于多层子目录（例如 `代码/backend/`、`代码/frontend/`、`参考系统/`），或者一个工作区同时包含多个独立服务、Submodule 与 Worktree，导致原生界面无法识别或集中管理。
+
+**DSH RepoRadar**（`dsh-repo-radar`）会自动穿透扫描工作区子目录，探测出所有 Git 仓库，并在 DSH 会话顶部视图栏嵌入一套 **IntelliJ IDEA New UI** 风格的 Git 工作台——支持目录树勾选提交、并排 Diff、三栏式 Git 日志、分支与 Stash 管理，并同步向 AI 提供 `multi_git` 工具。
+
+<p align="center">
+  <img src="./docs/preview.svg" width="640" alt="DSH RepoRadar 界面示意图" />
+</p>
+
+---
+
+## 核心功能
+
+- **多仓库与深层子目录自动发现**
+  - 自动探测根目录仓库、嵌套子目录仓库、上层父仓库、Git Submodule 与 Worktree（默认扫描深度 `6`），自动跳过 `node_modules`、`target`、`dist`、`.git` 等大目录。
+  - 双层刷新机制：切回标签页或 AI 每轮回答结束后自动轻量刷新状态，也支持一键重新扫描目录结构。
+  - 多仓库时支持顶栏一键 **全部 Fetch**（并发执行 `git fetch --all --prune`）。
+- **IntelliJ IDEA New UI 风格工具窗口**
+  - **Repositories 侧边栏**：可折叠的平铺仓库列表，支持名称/分支搜索与「仅看有变更」筛选。
+  - **Commit（变更提交）页**：
+    - 压缩目录树（类似 IDEA *Compact Middle Packages*）与三态复选框，采用 IDEA 经典文件状态配色（修改蓝、新增/暂存绿、删除灰+删除线、未跟踪琥珀棕、冲突红），支持目录树 / 平铺切换。
+    - 勾选即提交：支持 **Commit**、**Commit and Push...（提交并推送）**、**Amend（修补上次提交）**，以及批量/单文件 **Rollback（回滚）**（带二次确认）。
+  - **Diff 对比视图**：
+    - 支持 **Side-by-side（并排对比）** 与 **Unified（统一视图）** 切换，带 3px 左侧行号变更色条、`+N -M` 统计与 `↑` / `↓` 变更块快速跳转。
+  - **Git 日志页（经典三栏）**：
+    - 左栏 **Branches 分支树**（`HEAD`、`All`、`Local`、`Remote`），点击直接过滤日志，悬停快速 `Checkout`，支持 `+` 新建分支。
+    - 中栏 **单行提交表**：提交图谱连线、彩色分支/Tag 旗标（`HEAD` 绿、本地蓝、远程紫、Tag 琥珀），支持按文本或 **Commit Hash** 搜索、按作者筛选、排序切换、分页加载（`加载更多`）与 **Undo Commit**（`git reset --soft HEAD~1`，保留全部修改）。
+    - 右栏 **提交检查器**：上方以目录树展示本次提交修改的文件及 `+N -M` 统计，支持 **Cherry-pick** 与复制 Hash，下方联动预览选中文件的 Diff。
+  - **头部快捷浮层**：
+    - 分支管理浮层（新建、切换、合并、删除本地分支、检出远程分支、复制远端地址）。
+    - **Stash 储藏**浮层（保存改动、Apply、Pop、Drop）。
+- **共享 `multi_git` Agent 工具**
+  - 将上述多仓库扫描、日志、Diff 与安全 Git 操作暴露给 DSH 会话中的 AI 助手调用。
+
+---
+
+## 插件安装教程
+
+### 环境准备
+
+- 已安装 **DeepSeek Harness (DSH)** 桌面端或 Web 端
+- 系统 `PATH` 中已安装并可执行 **`git`**
+
+### 方式一：通过 DSH 图形界面安装（推荐）
+
+1. **获取插件源码到本地目录**：
+   - **使用 Git 克隆**（推荐，方便后续 `git pull` 更新）：
+     ```bash
+     git clone https://github.com/xxll569/dsh-repo-radar.git
+     ```
+   - **或下载 Release 压缩包**：前往 [Releases 页面](https://github.com/xxll569/dsh-repo-radar/releases) 下载 `Source code (zip)`，解压到一个固定目录（例如 `D:\dsh-plugins\dsh-repo-radar`）。
+2. **在 DSH 中添加本地插件**：
+   - 打开 **DeepSeek Harness** → 进入 **设置 / 插件管理（Plugins）** → 点击 **添加插件（Add plugin / 从本地目录添加）**。
+   - 选择刚才克隆或解压出来的 `dsh-repo-radar` 根目录（里面应包含 `package.json` 和 `cordis.patch.yml`）。
+   - 确认插件列表出现 **`DSH RepoRadar · 多 Git 仓库工作台`** 且处于 **已启用** 状态。
+3. **重启一次 DSH**：
+   - 由于本插件包含 Host 侧后端接口（`/api/multi-git.*`）与 `multi_git` Agent 工具，首次安装后需要 **重启一次 DeepSeek Harness** 让后端路由生效。
+4. **开始使用**：
+   - 打开任意绑定了工作区或目录的会话，在顶部会话视图栏点击 **`Git 仓库`**（英文界面为 `Git repos`）即可使用。
+
+### 方式二：直接让 DSH 对话助手帮你安装
+
+如果当前会话启用了插件管理工具（`plugin_manager`），可以直接在对话框发送：
+
+> *“请帮我安装本地路径 `D:\path\to\dsh-repo-radar` 下的 DSH 插件。”*
+
+安装完成后同样重启一次 DSH 即可生效。
+
+### 更新与卸载
+
+- **更新插件**：因为本地目录安装采用链接模式，在克隆目录内执行 `git pull`，然后重启 DSH 即可加载最新版本。
+- **停用 / 卸载**：在 DSH **插件管理** 中关闭或移除 `dsh-repo-radar` 即可移除 `Git 仓库` 标签页与 `multi_git` 工具，不会对你的业务代码仓库做任何修改。
+
+---
+
+## 项目结构
+
+```text
+dsh-repo-radar/
+├── package.json       # DSH Bundle 清单与 SEO 元数据
+├── cordis.patch.yml   # Cordis 插件挂载配置
+├── index.js           # Host 插件：注册 /api/multi-git.* 路由与 multi_git 工具
+├── git-scanner.js     # 非交互式 git 执行器、子目录扫描与状态/日志/Diff 解析
+├── client.js          # Web 视图插件（conversation.view 插槽，IDEA New UI 风格）
+├── icon.svg           # 插件矢量图标（36x36 SVG）
+├── docs/              # 详情页图文与预览图
+└── locale/            # 插件中英文标题与介绍（zh.json / en.json）
+```
+
+## 安全说明
+
+- 所有 `git` 命令均在本地以非交互模式（`GIT_TERMINAL_PROMPT=0`、`GIT_OPTIONAL_LOCKS=0`）通过 `execFile` / `spawn` 执行，不经由 shell 字符串拼接。
+- 严格校验仓库路径归属与文件路径边界，防止路径穿越。
+
+## 开源协议
+
+[MIT](./LICENSE)
