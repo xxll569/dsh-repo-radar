@@ -11,7 +11,7 @@
   </p>
   <p>
     <img src="https://img.shields.io/badge/DeepSeek%20Harness-Plugin-3574F0" alt="DSH Plugin" />
-    <img src="https://img.shields.io/badge/version-1.0.0-2A9D8F" alt="Version 1.0.0" />
+    <img src="https://img.shields.io/npm/v/dsh-repo-radar?color=2A9D8F" alt="npm version" />
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
   </p>
 </div>
@@ -61,19 +61,20 @@ By default, **DeepSeek Harness (DSH)** only detects `.git` at the workspace root
 
 ### Method 1: Install Directly via `dsh` CLI (One Command, No Manual Clone)
 
-If you use the `dsh` CLI (`web`, `tui`, `headless`, `sdk`, or custom profiles):
+If you use the `dsh` CLI (`web`, `tui`, `headless`, `sdk`, or custom profiles), install directly from **npm** (or GitHub):
 
 ```bash
-# Install directly from GitHub
-dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
+# Install from npm (recommended)
+dsh plugin --profile web add dsh-repo-radar
 
-# Or pin to a specific release tag
-dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.0
+# Or install directly from GitHub / a specific release tag
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.1
 ```
 
 > **Note for DSH Desktop users**: A standalone npm-installed `dsh` CLI rejects `--profile desktop`; use Desktop's own bundled `dsh` command (after opening Desktop once and quitting it):
 > ```bash
-> dsh plugin --profile desktop add https://github.com/xxll569/dsh-repo-radar.git
+> dsh plugin --profile desktop add dsh-repo-radar
 > ```
 > Or use **Method 2 / Method 3** directly inside the running Desktop app without quitting.
 
@@ -81,21 +82,21 @@ dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.
 
 If your DSH session has `plugin_manager` enabled, simply ask your DSH assistant:
 
-> *"Install the DSH plugin `https://github.com/xxll569/dsh-repo-radar.git`."*
+> *"Install the DSH plugin `dsh-repo-radar`."*
 
-*(Or point to a local folder if you already cloned it.)* Restart DSH once after installation so the Host plugin takes effect.
+*(Or point to `https://github.com/xxll569/dsh-repo-radar.git` or a local folder.)* Restart DSH once after installation so the Host plugin takes effect.
 
-### Method 3: Install via DSH GUI (Git URL or Local Directory)
+### Method 3: Install via DSH GUI (Package Name, Git URL, or Local Directory)
 
 1. Open **DSH** → **Plugins** (插件管理) → **Add plugin**.
-2. Paste `https://github.com/xxll569/dsh-repo-radar.git` (or clone/extract the [Release archive](https://github.com/xxll569/dsh-repo-radar/releases) and select the `dsh-repo-radar` folder).
+2. Enter `dsh-repo-radar` (or `https://github.com/xxll569/dsh-repo-radar.git`, or select a cloned folder from [Releases](https://github.com/xxll569/dsh-repo-radar/releases)).
 3. Confirm **`DSH RepoRadar`** is **Enabled**, then **restart DSH once** so the Host backend routes (`/api/multi-git.*`) and `multi_git` agent tool are mounted.
 4. Enter any session with a workspace or working directory and click **`Git repos`** (`Git 仓库`) in the top conversation view bar.
 
 ### Updating & Uninstalling
 
 - **Update**:
-  - Installed via GitHub URL: remove and re-add `https://github.com/xxll569/dsh-repo-radar.git` (or `dsh plugin --profile <name> update dsh-repo-radar`), then restart DSH.
+  - Installed via npm or GitHub: run `dsh plugin --profile <name> update dsh-repo-radar` (or update in **Plugins**), then restart DSH.
   - Installed via local directory: run `git pull` inside your cloned folder, then restart DSH.
 - **Disable / Uninstall**:
   - Run `dsh plugin --profile <name> remove dsh-repo-radar` or toggle off/remove **`dsh-repo-radar`** in **Plugins**. Turning it off cleanly removes the `Git repos` tab and `multi_git` tool without touching your Git repositories.
