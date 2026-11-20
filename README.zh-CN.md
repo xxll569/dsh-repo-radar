@@ -70,7 +70,7 @@ dsh plugin --profile web add dsh-repo-radar
 
 # 或直接从 GitHub / 指定 Release 标签安装
 dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
-dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.1
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.2
 ```
 
 > **DSH 桌面端（Desktop）提示**：通过 npm 全局安装的普通 `dsh` 命令不允许管理 `desktop` profile；请使用桌面端自带的 `dsh` 命令（需先打开一次桌面端初始化并完全退出后执行）：

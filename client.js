@@ -892,13 +892,25 @@ window.__ModuleLoader__.load({
   border-radius: 4px;
   user-select: none;
 }
+.mgv-tree-row-test {
+  background: color-mix(in srgb, var(--mgv-st-add) 10%, transparent);
+  border-radius: 0;
+}
 .mgv-tree-row:hover {
   background: var(--mgv-hover);
+  border-radius: 4px;
 }
-.mgv-tree-row-selected {
+.mgv-tree-row-test:hover {
+  background: color-mix(in srgb, var(--mgv-st-add) 17%, transparent);
+  border-radius: 4px;
+}
+.mgv-tree-row-selected,
+.mgv-tree-row-test.mgv-tree-row-selected {
   background: var(--mgv-sel);
+  border-radius: 4px;
 }
-.mgv-tree-row-selected:hover {
+.mgv-tree-row-selected:hover,
+.mgv-tree-row-test.mgv-tree-row-selected:hover {
   background: var(--mgv-sel);
 }
 .mgv-tree-caret {
@@ -1795,6 +1807,25 @@ window.__ModuleLoader__.load({
       if (ch === 'U') return 'mgv-fn-U';
       if (ch === '?') return 'mgv-fn-Q';
       return 'mgv-fn-M';
+    }
+
+    function isTestPath(filePath) {
+      if (!filePath) return false;
+      const normalized = String(filePath).replace(/\\/g, '/');
+      if (/(^|\/)(test|tests|__tests__|__mocks__|e2e)(\/|$)/i.test(normalized)) return true;
+      const slash = normalized.lastIndexOf('/');
+      const base = slash >= 0 ? normalized.slice(slash + 1) : normalized;
+      if (/(?:Test|Tests|IT|Spec|TestCase)\.(java|kt|kts|scala|cs)$/i.test(base)) return true;
+      if (/\.(?:test|spec|e2e|cy)\.(ts|tsx|js|jsx|mjs|cjs)$/i.test(base)) return true;
+      if (/^test_.+\.py$|_test\.py$/i.test(base)) return true;
+      if (/_test\.go$/i.test(base)) return true;
+      return false;
+    }
+
+    function isTestDirNode(dirNode) {
+      if (!dirNode) return false;
+      if (isTestPath(dirNode.fullPath)) return true;
+      return Array.isArray(dirNode.allPaths) && dirNode.allPaths.length > 0 && dirNode.allPaths.every(isTestPath);
     }
 
     function buildTrackedChanges(repo) {
@@ -2787,10 +2818,11 @@ window.__ModuleLoader__.load({
         const { base, dir } = splitDisplayPath(file.path, file.origPath);
         const fullDisplay = file.origPath ? `${file.origPath} → ${file.path}` : file.path;
         const nameCls = fileStatusTextClass(file.status);
+        const testRowCls = isTestPath(file.path) ? ' mgv-tree-row-test' : '';
 
         return h('div', {
           key: `${area}:${file.path}`,
-          className: `mgv-tree-row${isSelected ? ' mgv-tree-row-selected' : ''}`,
+          className: `mgv-tree-row${testRowCls}${isSelected ? ' mgv-tree-row-selected' : ''}`,
           style: depth > 0 ? { paddingLeft: `${depth * 14 + 6}px` } : undefined,
         },
           h(TriCheckbox, {
@@ -2836,9 +2868,10 @@ window.__ModuleLoader__.load({
         }
         const allChecked = checkedCount > 0 && checkedCount === dirNode.allPaths.length;
         const someChecked = checkedCount > 0 && checkedCount < dirNode.allPaths.length;
+        const testDirCls = isTestDirNode(dirNode) ? ' mgv-tree-row-test' : '';
 
         return h('div', { key: dirStateKey },
-          h('div', { className: 'mgv-tree-row', style: { paddingLeft: `${depth * 14 + 4}px` } },
+          h('div', { className: `mgv-tree-row${testDirCls}`, style: { paddingLeft: `${depth * 14 + 4}px` } },
             h('button', {
               type: 'button',
               className: 'mgv-tree-caret',
@@ -3178,8 +3211,9 @@ window.__ModuleLoader__.load({
       const renderInspectorTreeDirs = (dirs, commitHash, depth) => dirs.map((dirNode) => {
         const key = `${commitHash}:${dirNode.fullPath}`;
         const isCollapsed = Boolean(logCollapsedDirs[key]);
+        const testDirCls = isTestDirNode(dirNode) ? ' mgv-tree-row-test' : '';
         return h('div', { key },
-          h('div', { className: 'mgv-tree-row', style: { paddingLeft: `${depth * 14 + 4}px` } },
+          h('div', { className: `mgv-tree-row${testDirCls}`, style: { paddingLeft: `${depth * 14 + 4}px` } },
             h('button', {
               type: 'button',
               className: 'mgv-tree-caret',
@@ -3207,9 +3241,10 @@ window.__ModuleLoader__.load({
       const renderInspectorFileRow = (f, commitHash, depth) => {
         const isSel = selectedCommitFile && selectedCommitFile.path === f.path;
         const { base } = splitDisplayPath(f.path, f.origPath);
+        const testRowCls = isTestPath(f.path) ? ' mgv-tree-row-test' : '';
         return h('div', {
           key: f.path,
-          className: `mgv-tree-row${isSel ? ' mgv-tree-row-selected' : ''}`,
+          className: `mgv-tree-row${testRowCls}${isSel ? ' mgv-tree-row-selected' : ''}`,
           style: { paddingLeft: `${depth * 14 + 18}px` },
         },
           h('button', {
