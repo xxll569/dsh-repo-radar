@@ -84,6 +84,9 @@ window.__ModuleLoader__.load({
       'diff.modeSplit': 'Side-by-side',
       'diff.prevHunk': '上一处变更',
       'diff.nextHunk': '下一处变更',
+      'diff.closeTooltip': '关闭 Diff 面板',
+      'splitter.dragTip': '拖动调整大小（双击恢复默认）',
+      'inspector.closeTooltip': '关闭提交详情面板',
       'diff.placeholder': '选择左侧文件以查看 Diff',
       'diff.cleanPlaceholder': '工作区干净，无本地变更',
       'diff.loading': '正在加载差异…',
@@ -255,6 +258,9 @@ window.__ModuleLoader__.load({
       'diff.modeSplit': 'Side-by-side',
       'diff.prevHunk': 'Previous Difference',
       'diff.nextHunk': 'Next Difference',
+      'diff.closeTooltip': 'Close Diff pane',
+      'splitter.dragTip': 'Drag to resize (double-click to reset)',
+      'inspector.closeTooltip': 'Close Commit Inspector',
       'diff.placeholder': 'Select a file to view Diff',
       'diff.cleanPlaceholder': 'Working tree clean — nothing to diff',
       'diff.loading': 'Loading diff…',
@@ -676,14 +682,66 @@ window.__ModuleLoader__.load({
   border-bottom: 1px solid var(--mgv-border);
 }
 
+/* Draggable IDE Splitters */
+.mgv-splitter-v {
+  position: relative;
+  width: 5px;
+  margin: 0 -2px;
+  cursor: col-resize;
+  flex: none;
+  z-index: 6;
+  touch-action: none;
+}
+.mgv-splitter-v::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 1px;
+  background: var(--mgv-border);
+  transition: background-color 110ms ease, width 110ms ease, left 110ms ease;
+}
+.mgv-splitter-v:hover::after,
+.mgv-splitter-v.mgv-splitter-active::after {
+  left: 1px;
+  width: 3px;
+  background: var(--mgv-accent);
+}
+.mgv-splitter-h {
+  position: relative;
+  height: 5px;
+  margin: -2px 0;
+  cursor: row-resize;
+  flex: none;
+  z-index: 6;
+  touch-action: none;
+}
+.mgv-splitter-h::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2px;
+  height: 1px;
+  background: var(--mgv-border);
+  transition: background-color 110ms ease, height 110ms ease, top 110ms ease;
+}
+.mgv-splitter-h:hover::after,
+.mgv-splitter-h.mgv-splitter-active::after {
+  top: 1px;
+  height: 3px;
+  background: var(--mgv-accent);
+}
+
 /* Left IDEA Repositories Sidebar (flat tree rows, no card boxes!) */
 .mgv-repo-rail {
   width: 236px;
+  max-width: 55%;
   flex: none;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--mgv-border);
   background: var(--mgv-chrome);
 }
 .mgv-rail-head {
@@ -793,8 +851,8 @@ window.__ModuleLoader__.load({
 
 /* IDEA Commit Tool Window Split (Left Tree+Message | Right Diff) */
 .mgv-commit-split {
-  display: grid;
-  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+  display: flex;
+  flex-direction: row;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -804,7 +862,6 @@ window.__ModuleLoader__.load({
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--mgv-border);
   background: var(--mgv-canvas);
   overflow: hidden;
 }
@@ -923,15 +980,15 @@ window.__ModuleLoader__.load({
   flex-direction: column;
   gap: 8px;
   padding: 9px 10px;
-  border-top: 1px solid var(--mgv-border);
   background: var(--mgv-chrome);
   flex: none;
+  min-height: 84px;
 }
 .mgv-commit-textarea {
   width: 100%;
-  min-height: 64px;
-  max-height: 140px;
-  resize: vertical;
+  flex: 1;
+  min-height: 44px;
+  resize: none;
   padding: 7px 9px;
   border-radius: 5px;
   border: 1px solid var(--mgv-border);
@@ -965,6 +1022,7 @@ window.__ModuleLoader__.load({
 .mgv-diff-pane {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -1087,10 +1145,11 @@ window.__ModuleLoader__.load({
 /* ========================================================= */
 .mgv-log-filter-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
-  height: 35px;
-  padding: 0 10px;
+  gap: 5px 7px;
+  min-height: 35px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--mgv-border);
   background: var(--mgv-chrome);
   flex: none;
@@ -1103,11 +1162,11 @@ window.__ModuleLoader__.load({
 }
 .mgv-log-branches {
   width: 204px;
+  max-width: 45%;
   flex: none;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--mgv-border);
   background: var(--mgv-chrome);
   overflow-y: auto;
   padding: 5px;
@@ -1169,12 +1228,11 @@ window.__ModuleLoader__.load({
 
 /* Center IDEA Commit Table */
 .mgv-log-table-wrap {
-  flex: 1.15;
-  min-width: 300px;
+  flex: 1;
+  min-width: 220px;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--mgv-border);
   background: var(--mgv-canvas);
   overflow: hidden;
 }
@@ -1286,10 +1344,11 @@ window.__ModuleLoader__.load({
 
 /* Right IDEA Commit Inspector (Files Tree + Commit Info + File Diff) */
 .mgv-log-inspector {
-  flex: 1;
-  min-width: 280px;
-  display: grid;
-  grid-template-rows: minmax(150px, 42%) minmax(0, 1fr);
+  flex: none;
+  min-width: 260px;
+  max-width: 72%;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   overflow: hidden;
   background: var(--mgv-canvas);
@@ -1297,8 +1356,9 @@ window.__ModuleLoader__.load({
 .mgv-inspector-top {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  border-bottom: 1px solid var(--mgv-border);
+  flex: none;
+  min-height: 110px;
+  max-height: 75%;
   overflow: hidden;
 }
 .mgv-inspector-files {
@@ -1428,23 +1488,26 @@ window.__ModuleLoader__.load({
 .mgv-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 @container (max-width: 1120px) {
-  .mgv-log-branches { display: none; }
+  .mgv-log-branches, .mgv-log-branches-splitter { display: none; }
 }
 @container (max-width: 960px) {
   .mgv-commit-split, .mgv-log-3pane {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(200px, 46%) minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
   }
-  .mgv-tool-pane, .mgv-log-table-wrap {
-    border-right: none;
+  .mgv-splitter-v { display: none; }
+  .mgv-tool-pane, .mgv-log-table-wrap, .mgv-log-inspector {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 50%;
     border-bottom: 1px solid var(--mgv-border);
   }
 }
 @container (max-width: 700px) {
   .mgv-shell { flex-direction: column; }
   .mgv-repo-rail {
-    width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     max-height: 150px;
     border-right: none;
     border-bottom: 1px solid var(--mgv-border);
@@ -1554,7 +1617,86 @@ window.__ModuleLoader__.load({
       caretDown: () => h(SvgIcon, { size: 11, d: 'm4 6 4 4 4-4' }),
       funnel: () => h(SvgIcon, { size: 13, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1.2V8.5l-4.2-5Z' }),
       plus: () => h(SvgIcon, { size: 12, d: 'M8 3v10M3 8h10' }),
+      close: () => h(SvgIcon, { size: 13, d: 'M4 4l8 8M12 4l-8 8' }),
     };
+
+    const LAYOUT_STORAGE_KEY = 'mgv.layout.v1';
+    const DEFAULT_LAYOUT = {
+      railWidth: 236,
+      commitLeftWidth: 390,
+      commitDockHeight: 120,
+      logBranchesWidth: 204,
+      logInspectorWidth: 500,
+      logFilesHeight: 230,
+    };
+
+    function loadSavedLayout() {
+      try {
+        if (typeof localStorage === 'undefined') return { ...DEFAULT_LAYOUT };
+        const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
+        if (!raw) return { ...DEFAULT_LAYOUT };
+        const parsed = JSON.parse(raw);
+        return { ...DEFAULT_LAYOUT, ...(parsed && typeof parsed === 'object' ? parsed : {}) };
+      } catch {
+        return { ...DEFAULT_LAYOUT };
+      }
+    }
+
+    function saveLayout(next) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(next));
+        }
+      } catch { /* ignore */ }
+    }
+
+    function clampNum(val, min, max) {
+      return Math.max(min, Math.min(max, Math.round(val)));
+    }
+
+    function ResizeHandle({ orientation, side, size, min, max, defaultSize, onChange, className = '', title }) {
+      const [dragging, setDragging] = useState(false);
+
+      const handlePointerDown = (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        const startCoord = orientation === 'vertical' ? event.clientX : event.clientY;
+        const startSize = size;
+        const sign = (side === 'left' || side === 'top') ? 1 : -1;
+        setDragging(true);
+        const prevCursor = document.body.style.cursor;
+        const prevUserSelect = document.body.style.userSelect;
+        document.body.style.cursor = orientation === 'vertical' ? 'col-resize' : 'row-resize';
+        document.body.style.userSelect = 'none';
+
+        const onMove = (moveEvt) => {
+          const curCoord = orientation === 'vertical' ? moveEvt.clientX : moveEvt.clientY;
+          const next = clampNum(startSize + sign * (curCoord - startCoord), min, max);
+          onChange(next);
+        };
+        const onUp = () => {
+          setDragging(false);
+          document.body.style.cursor = prevCursor;
+          document.body.style.userSelect = prevUserSelect;
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+          window.removeEventListener('pointercancel', onUp);
+        };
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        window.addEventListener('pointercancel', onUp);
+      };
+
+      const baseCls = orientation === 'vertical' ? 'mgv-splitter-v' : 'mgv-splitter-h';
+      return h('div', {
+        role: 'separator',
+        'aria-orientation': orientation,
+        title,
+        className: `${baseCls}${dragging ? ' mgv-splitter-active' : ''}${className ? ` ${className}` : ''}`,
+        onPointerDown: handlePointerDown,
+        onDoubleClick: () => { if (typeof defaultSize === 'number') onChange(defaultSize); },
+      });
+    }
 
     const scanCache = new Map();
 
@@ -1825,7 +1967,7 @@ window.__ModuleLoader__.load({
       });
     }
 
-    function IdeaDiffPane({ titlePath, statusChar, diffState, diffMode, onDiffModeChange, extraActions, emptyText, t }) {
+    function IdeaDiffPane({ titlePath, statusChar, diffState, diffMode, onDiffModeChange, extraActions, onClose, closeTitle, emptyText, t }) {
       const bodyRef = useRef(null);
       const [hunkCursor, setHunkCursor] = useState(0);
 
@@ -1900,6 +2042,14 @@ window.__ModuleLoader__.load({
               }, t('diff.modeUnified')),
             ),
             extraActions || null,
+            onClose
+              ? h('button', {
+                type: 'button',
+                className: 'mgv-icon-btn',
+                title: closeTitle || t('diff.closeTooltip'),
+                onClick: onClose,
+              }, Icons.close())
+              : null,
           ),
         ),
         h('div', { ref: bodyRef, className: 'mgv-diff-body' },
@@ -2078,6 +2228,15 @@ window.__ModuleLoader__.load({
       const [treeMode, setTreeMode] = useState(true);
       const [showReposRail, setShowReposRail] = useState(true);
       const [showLogBranches, setShowLogBranches] = useState(true);
+      const [layout, setLayout] = useState(loadSavedLayout);
+
+      const updateLayout = useCallback((patch) => {
+        setLayout((prev) => {
+          const next = { ...prev, ...patch };
+          saveLayout(next);
+          return next;
+        });
+      }, []);
 
       const [searchQuery, setSearchQuery] = useState('');
       const [dirtyOnly, setDirtyOnly] = useState(false);
@@ -2824,8 +2983,15 @@ window.__ModuleLoader__.load({
           renderCommitGroup('unversioned', t('changes.unversioned'), unversionedFiles, selectedRepo.counts.untracked, 'untracked'),
         ].filter(Boolean);
 
+        const hasDiffOpen = Boolean(selectedFile && selectedFile.repoPath === selectedRepo.path);
+
         return h('div', { className: 'mgv-commit-split' },
-          h('div', { className: 'mgv-tool-pane' },
+          h('div', {
+            className: 'mgv-tool-pane',
+            style: hasDiffOpen
+              ? { width: `${layout.commitLeftWidth}px`, maxWidth: '70%', flex: 'none' }
+              : { flex: 1 },
+          },
             h('div', { className: 'mgv-tool-bar' },
               h('input', {
                 type: 'search',
@@ -2887,7 +3053,17 @@ window.__ModuleLoader__.load({
                   ? renderedGroups
                   : h('div', { className: 'mgv-empty' }, h('div', null, t('changes.noFileMatches'))),
             ),
-            h('div', { className: 'mgv-commit-dock' },
+            h(ResizeHandle, {
+              orientation: 'horizontal',
+              side: 'bottom',
+              size: layout.commitDockHeight,
+              min: 84,
+              max: 320,
+              defaultSize: DEFAULT_LAYOUT.commitDockHeight,
+              title: t('splitter.dragTip'),
+              onChange: (next) => { updateLayout({ commitDockHeight: next }); },
+            }),
+            h('div', { className: 'mgv-commit-dock', style: { height: `${layout.commitDockHeight}px` } },
               h('textarea', {
                 className: 'mgv-commit-textarea',
                 value: commitMsg,
@@ -2954,31 +3130,48 @@ window.__ModuleLoader__.load({
               ),
             ),
           ),
-          h(IdeaDiffPane, {
-            titlePath: selectedFile && selectedFile.repoPath === selectedRepo.path ? selectedFile.path : null,
-            statusChar: selectedFile ? selectedFile.status : null,
-            diffState: fileDiffState,
-            diffMode,
-            onDiffModeChange: setDiffMode,
-            emptyText: hasAny ? t('diff.placeholder') : t('diff.cleanPlaceholder'),
-            t,
-            extraActions: selectedFile
-              ? h('button', {
-                type: 'button',
-                className: 'mgv-icon-btn mgv-icon-btn-danger',
-                title: t('file.rollback'),
-                disabled: Boolean(selectedBusy),
-                onClick: () => {
-                  setConfirmModal({
-                    kind: 'rollback_single',
-                    repo: selectedRepo,
-                    filePath: selectedFile.path,
-                    untracked: selectedFile.area === 'untracked',
-                  });
+          hasDiffOpen
+            ? h(React.Fragment, null,
+              h(ResizeHandle, {
+                orientation: 'vertical',
+                side: 'left',
+                size: layout.commitLeftWidth,
+                min: 250,
+                max: 760,
+                defaultSize: DEFAULT_LAYOUT.commitLeftWidth,
+                title: t('splitter.dragTip'),
+                onChange: (next) => { updateLayout({ commitLeftWidth: next }); },
+              }),
+              h(IdeaDiffPane, {
+                titlePath: selectedFile.path,
+                statusChar: selectedFile.status,
+                diffState: fileDiffState,
+                diffMode,
+                onDiffModeChange: setDiffMode,
+                emptyText: t('diff.placeholder'),
+                onClose: () => {
+                  if (fileDiffAbortRef.current) fileDiffAbortRef.current.abort();
+                  setSelectedFile(null);
+                  setFileDiffState({ loading: false, data: null, error: null });
                 },
-              }, Icons.rollback())
-              : null,
-          }),
+                t,
+                extraActions: h('button', {
+                  type: 'button',
+                  className: 'mgv-icon-btn mgv-icon-btn-danger',
+                  title: t('file.rollback'),
+                  disabled: Boolean(selectedBusy),
+                  onClick: () => {
+                    setConfirmModal({
+                      kind: 'rollback_single',
+                      repo: selectedRepo,
+                      filePath: selectedFile.path,
+                      untracked: selectedFile.area === 'untracked',
+                    });
+                  },
+                }, Icons.rollback()),
+              }),
+            )
+            : null,
         );
       };
 
@@ -3113,7 +3306,8 @@ window.__ModuleLoader__.load({
           ),
           h('div', { className: 'mgv-log-3pane' },
             showLogBranches
-              ? h('div', { className: 'mgv-log-branches' },
+              ? h(React.Fragment, null,
+                h('div', { className: 'mgv-log-branches', style: { width: `${layout.logBranchesWidth}px` } },
                 h('div', {
                   className: `mgv-log-branch-item${logBranch === '__current__' ? ' mgv-log-branch-item-active' : ''}`,
                   onClick: () => { setLogBranch('__current__'); },
@@ -3198,6 +3392,18 @@ window.__ModuleLoader__.load({
                     )),
                   )
                   : null,
+              ),
+              h(ResizeHandle, {
+                orientation: 'vertical',
+                side: 'left',
+                className: 'mgv-log-branches-splitter',
+                size: layout.logBranchesWidth,
+                min: 140,
+                max: 380,
+                defaultSize: DEFAULT_LAYOUT.logBranchesWidth,
+                title: t('splitter.dragTip'),
+                onChange: (next) => { updateLayout({ logBranchesWidth: next }); },
+              }),
               )
               : null,
             h('div', { className: 'mgv-log-table-wrap' },
@@ -3226,7 +3432,18 @@ window.__ModuleLoader__.load({
                           key: commit.hash,
                           type: 'button',
                           className: `mgv-log-tr${isSelected ? ' mgv-log-tr-active' : ''}`,
-                          onClick: () => { void openCommitDetails(selectedRepo.path, commit); },
+                          onClick: () => {
+                            if (isSelected) {
+                              if (commitDetailsAbortRef.current) commitDetailsAbortRef.current.abort();
+                              if (commitFileDiffAbortRef.current) commitFileDiffAbortRef.current.abort();
+                              setSelectedCommit(null);
+                              setSelectedCommitFile(null);
+                              setCommitDetailsState({ loading: false, data: null, error: null });
+                              setCommitFileDiffState({ loading: false, data: null, error: null });
+                            } else {
+                              void openCommitDetails(selectedRepo.path, commit);
+                            }
+                          },
                         },
                           h('span', { className: 'mgv-log-cell-msg' },
                             h(CommitGraphNode, { isFirst: idx === 0, isLast: idx === commits.length - 1, isMerge: Boolean(commit.isMerge) }),
@@ -3260,54 +3477,89 @@ window.__ModuleLoader__.load({
               ),
             ),
             !selectedCommit
-              ? h('div', { className: 'mgv-diff-pane' }, h('div', { className: 'mgv-empty' }, t('log.placeholder')))
-              : h('div', { className: 'mgv-log-inspector' },
-                h('div', { className: 'mgv-inspector-top' },
-                  h('div', { className: 'mgv-inspector-files' },
-                    commitDetailsState.loading
-                      ? h('div', { className: 'mgv-empty' }, t('diff.loading'))
-                      : commitDetailsState.error
-                        ? h('div', { className: 'mgv-empty', style: { color: 'var(--mgv-st-conf)' } }, commitDetailsState.error)
-                        : commitFilesTree
-                          ? h(React.Fragment, null,
-                            renderInspectorTreeDirs(commitFilesTree.dirs, detailCommit.hash, 0),
-                            commitFilesTree.files.map((f) => renderInspectorFileRow(f, detailCommit.hash, 0)),
-                          )
-                          : null,
-                  ),
-                  h('div', { className: 'mgv-inspector-meta' },
-                    h('div', { className: 'mgv-inspector-meta-top' },
-                      h('span', { className: 'mgv-inspector-subj', title: detailCommit.subject }, detailCommit.subject),
-                      h('div', { className: 'mgv-controls' },
-                        h('button', {
-                          type: 'button',
-                          className: 'mgv-btn mgv-btn-sm',
-                          disabled: Boolean(selectedBusy),
-                          onClick: () => { void runGitAction('cherry_pick', { hash: detailCommit.hash }, selectedRepo); },
-                        }, selectedBusy === 'cherry_pick' ? t('log.cherryPicking') : t('log.cherryPick')),
-                        h('button', {
-                          type: 'button',
-                          className: 'mgv-icon-btn',
-                          title: `${t('log.copyHash')}: ${detailCommit.shortHash}`,
-                          onClick: () => { void handleCopy(`hash:${detailCommit.hash}`, detailCommit.hash); },
-                        }, Icons.copy(), h('span', null, copiedKey === `hash:${detailCommit.hash}` ? t('header.copied') : detailCommit.shortHash)),
+              ? null
+              : h(React.Fragment, null,
+                h(ResizeHandle, {
+                  orientation: 'vertical',
+                  side: 'right',
+                  size: layout.logInspectorWidth,
+                  min: 280,
+                  max: 960,
+                  defaultSize: DEFAULT_LAYOUT.logInspectorWidth,
+                  title: t('splitter.dragTip'),
+                  onChange: (next) => { updateLayout({ logInspectorWidth: next }); },
+                }),
+                h('div', { className: 'mgv-log-inspector', style: { width: `${layout.logInspectorWidth}px` } },
+                  h('div', { className: 'mgv-inspector-top', style: { height: `${layout.logFilesHeight}px` } },
+                    h('div', { className: 'mgv-inspector-files' },
+                      commitDetailsState.loading
+                        ? h('div', { className: 'mgv-empty' }, t('diff.loading'))
+                        : commitDetailsState.error
+                          ? h('div', { className: 'mgv-empty', style: { color: 'var(--mgv-st-conf)' } }, commitDetailsState.error)
+                          : commitFilesTree
+                            ? h(React.Fragment, null,
+                              renderInspectorTreeDirs(commitFilesTree.dirs, detailCommit.hash, 0),
+                              commitFilesTree.files.map((f) => renderInspectorFileRow(f, detailCommit.hash, 0)),
+                            )
+                            : null,
+                    ),
+                    h('div', { className: 'mgv-inspector-meta' },
+                      h('div', { className: 'mgv-inspector-meta-top' },
+                        h('span', { className: 'mgv-inspector-subj', title: detailCommit.subject }, detailCommit.subject),
+                        h('div', { className: 'mgv-controls' },
+                          h('button', {
+                            type: 'button',
+                            className: 'mgv-btn mgv-btn-sm',
+                            disabled: Boolean(selectedBusy),
+                            onClick: () => { void runGitAction('cherry_pick', { hash: detailCommit.hash }, selectedRepo); },
+                          }, selectedBusy === 'cherry_pick' ? t('log.cherryPicking') : t('log.cherryPick')),
+                          h('button', {
+                            type: 'button',
+                            className: 'mgv-icon-btn',
+                            title: `${t('log.copyHash')}: ${detailCommit.shortHash}`,
+                            onClick: () => { void handleCopy(`hash:${detailCommit.hash}`, detailCommit.hash); },
+                          }, Icons.copy(), h('span', null, copiedKey === `hash:${detailCommit.hash}` ? t('header.copied') : detailCommit.shortHash)),
+                          h('button', {
+                            type: 'button',
+                            className: 'mgv-icon-btn',
+                            title: t('inspector.closeTooltip'),
+                            onClick: () => {
+                              if (commitDetailsAbortRef.current) commitDetailsAbortRef.current.abort();
+                              if (commitFileDiffAbortRef.current) commitFileDiffAbortRef.current.abort();
+                              setSelectedCommit(null);
+                              setSelectedCommitFile(null);
+                              setCommitDetailsState({ loading: false, data: null, error: null });
+                              setCommitFileDiffState({ loading: false, data: null, error: null });
+                            },
+                          }, Icons.close()),
+                        ),
+                      ),
+                      h('div', { className: 'mgv-inspector-sub' },
+                        h('span', null, `${detailCommit.author}${detailCommit.email ? ` <${detailCommit.email}>` : ''}`),
+                        h('span', null, formatIsoLocal(detailCommit.committerIso || detailCommit.authorIso || detailCommit.isoDate)),
                       ),
                     ),
-                    h('div', { className: 'mgv-inspector-sub' },
-                      h('span', null, `${detailCommit.author}${detailCommit.email ? ` <${detailCommit.email}>` : ''}`),
-                      h('span', null, formatIsoLocal(detailCommit.committerIso || detailCommit.authorIso || detailCommit.isoDate)),
-                    ),
                   ),
+                  h(ResizeHandle, {
+                    orientation: 'horizontal',
+                    side: 'top',
+                    size: layout.logFilesHeight,
+                    min: 110,
+                    max: 560,
+                    defaultSize: DEFAULT_LAYOUT.logFilesHeight,
+                    title: t('splitter.dragTip'),
+                    onChange: (next) => { updateLayout({ logFilesHeight: next }); },
+                  }),
+                  h(IdeaDiffPane, {
+                    titlePath: selectedCommitFile ? selectedCommitFile.path : null,
+                    statusChar: selectedCommitFile ? selectedCommitFile.status : null,
+                    diffState: commitFileDiffState,
+                    diffMode,
+                    onDiffModeChange: setDiffMode,
+                    emptyText: t('log.selectFileHint'),
+                    t,
+                  }),
                 ),
-                h(IdeaDiffPane, {
-                  titlePath: selectedCommitFile ? selectedCommitFile.path : null,
-                  statusChar: selectedCommitFile ? selectedCommitFile.status : null,
-                  diffState: commitFileDiffState,
-                  diffMode,
-                  onDiffModeChange: setDiffMode,
-                  emptyText: t('log.selectFileHint'),
-                  t,
-                }),
               ),
           ),
         );
@@ -3631,7 +3883,8 @@ window.__ModuleLoader__.load({
 
         return h('div', { className: 'mgv-shell' },
           showReposRail
-            ? h('div', { className: 'mgv-repo-rail' },
+            ? h(React.Fragment, null,
+              h('div', { className: 'mgv-repo-rail', style: { width: `${layout.railWidth}px` } },
               h('div', { className: 'mgv-rail-head' },
                 h('input', {
                   type: 'search',
@@ -3701,6 +3954,17 @@ window.__ModuleLoader__.load({
                   }, t('rail.showAll')),
                 )
                 : null,
+              ),
+              h(ResizeHandle, {
+                orientation: 'vertical',
+                side: 'left',
+                size: layout.railWidth,
+                min: 160,
+                max: 440,
+                defaultSize: DEFAULT_LAYOUT.railWidth,
+                title: t('splitter.dragTip'),
+                onChange: (next) => { updateLayout({ railWidth: next }); },
+              }),
             )
             : null,
           h('div', { className: 'mgv-main' },
