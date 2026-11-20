@@ -56,38 +56,49 @@ By default, **DeepSeek Harness (DSH)** only detects `.git` at the workspace root
 
 ### Prerequisites
 
-- **DeepSeek Harness (DSH)** desktop/web installation
+- **DeepSeek Harness (DSH)** (CLI, Web, or Desktop)
 - **`git`** installed and available on your system `PATH`
 
-### Method 1: Install via DSH GUI (Recommended)
+### Method 1: Install Directly via `dsh` CLI (One Command, No Manual Clone)
 
-1. **Download or clone the plugin**:
-   - **Using Git**:
-     ```bash
-     git clone https://github.com/xxll569/dsh-repo-radar.git
-     ```
-   - **Or download a Release archive**: Download `Source code (zip)` from [Releases](https://github.com/xxll569/dsh-repo-radar/releases) and extract it to a permanent folder (e.g. `D:\dsh-plugins\dsh-repo-radar`).
-2. **Add the plugin in DeepSeek Harness**:
-   - Open **DSH** → click **Settings / Plugins** (插件管理) → choose **Add plugin** (添加本地插件目录).
-   - Select the `dsh-repo-radar` folder (the directory containing `package.json` and `cordis.patch.yml`).
-   - Confirm that **`DSH RepoRadar`** is installed and **Enabled**.
-3. **Restart DSH once**:
-   - Because this plugin registers Host backend routes (`/api/multi-git.*`) and the `multi_git` agent tool, restart DeepSeek Harness once after initial installation.
-4. **Open and use**:
-   - Enter any session with a workspace or working directory and click the **`Git repos`** (`Git 仓库`) tab in the top conversation view bar.
+If you use the `dsh` CLI (`web`, `tui`, `headless`, `sdk`, or custom profiles):
 
-### Method 2: Install via DSH Chat Agent
+```bash
+# Install directly from GitHub
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
+
+# Or pin to a specific release tag
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.0
+```
+
+> **Note for DSH Desktop users**: A standalone npm-installed `dsh` CLI rejects `--profile desktop`; use Desktop's own bundled `dsh` command (after opening Desktop once and quitting it):
+> ```bash
+> dsh plugin --profile desktop add https://github.com/xxll569/dsh-repo-radar.git
+> ```
+> Or use **Method 2 / Method 3** directly inside the running Desktop app without quitting.
+
+### Method 2: Install via DSH Chat Agent (One Sentence)
 
 If your DSH session has `plugin_manager` enabled, simply ask your DSH assistant:
 
-> *"Install the local DSH plugin at `D:\path\to\dsh-repo-radar`."*
+> *"Install the DSH plugin `https://github.com/xxll569/dsh-repo-radar.git`."*
 
-Then restart DSH once so the Host plugin takes effect.
+*(Or point to a local folder if you already cloned it.)* Restart DSH once after installation so the Host plugin takes effect.
+
+### Method 3: Install via DSH GUI (Git URL or Local Directory)
+
+1. Open **DSH** → **Plugins** (插件管理) → **Add plugin**.
+2. Paste `https://github.com/xxll569/dsh-repo-radar.git` (or clone/extract the [Release archive](https://github.com/xxll569/dsh-repo-radar/releases) and select the `dsh-repo-radar` folder).
+3. Confirm **`DSH RepoRadar`** is **Enabled**, then **restart DSH once** so the Host backend routes (`/api/multi-git.*`) and `multi_git` agent tool are mounted.
+4. Enter any session with a workspace or working directory and click **`Git repos`** (`Git 仓库`) in the top conversation view bar.
 
 ### Updating & Uninstalling
 
-- **Update**: Run `git pull` inside your cloned `dsh-repo-radar` directory (since local directory plugins link directly to your folder), then restart DSH.
-- **Disable / Uninstall**: Toggle off or remove **`dsh-repo-radar`** in **Plugins**. Turning it off cleanly removes the `Git repos` tab and the `multi_git` tool without touching your Git repositories.
+- **Update**:
+  - Installed via GitHub URL: remove and re-add `https://github.com/xxll569/dsh-repo-radar.git` (or `dsh plugin --profile <name> update dsh-repo-radar`), then restart DSH.
+  - Installed via local directory: run `git pull` inside your cloned folder, then restart DSH.
+- **Disable / Uninstall**:
+  - Run `dsh plugin --profile <name> remove dsh-repo-radar` or toggle off/remove **`dsh-repo-radar`** in **Plugins**. Turning it off cleanly removes the `Git repos` tab and `multi_git` tool without touching your Git repositories.
 
 ---
 

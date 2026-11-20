@@ -57,38 +57,49 @@
 
 ### 环境准备
 
-- 已安装 **DeepSeek Harness (DSH)** 桌面端或 Web 端
+- 已安装 **DeepSeek Harness (DSH)**（CLI、Web 或桌面端）
 - 系统 `PATH` 中已安装并可执行 **`git`**
 
-### 方式一：通过 DSH 图形界面安装（推荐）
+### 方式一：使用 `dsh` 命令直接安装（一条命令，无需手动 clone）
 
-1. **获取插件源码到本地目录**：
-   - **使用 Git 克隆**（推荐，方便后续 `git pull` 更新）：
-     ```bash
-     git clone https://github.com/xxll569/dsh-repo-radar.git
-     ```
-   - **或下载 Release 压缩包**：前往 [Releases 页面](https://github.com/xxll569/dsh-repo-radar/releases) 下载 `Source code (zip)`，解压到一个固定目录（例如 `D:\dsh-plugins\dsh-repo-radar`）。
-2. **在 DSH 中添加本地插件**：
-   - 打开 **DeepSeek Harness** → 进入 **设置 / 插件管理（Plugins）** → 点击 **添加插件（Add plugin / 从本地目录添加）**。
-   - 选择刚才克隆或解压出来的 `dsh-repo-radar` 根目录（里面应包含 `package.json` 和 `cordis.patch.yml`）。
-   - 确认插件列表出现 **`DSH RepoRadar · 多 Git 仓库工作台`** 且处于 **已启用** 状态。
-3. **重启一次 DSH**：
-   - 由于本插件包含 Host 侧后端接口（`/api/multi-git.*`）与 `multi_git` Agent 工具，首次安装后需要 **重启一次 DeepSeek Harness** 让后端路由生效。
-4. **开始使用**：
-   - 打开任意绑定了工作区或目录的会话，在顶部会话视图栏点击 **`Git 仓库`**（英文界面为 `Git repos`）即可使用。
+如果你使用的是 `dsh` CLI（如 `web`、`tui`、`headless`、`sdk` 或自定义 profile），可直接通过 GitHub 地址安装：
 
-### 方式二：直接让 DSH 对话助手帮你安装
+```bash
+# 直接从 GitHub 安装到 web profile
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
 
-如果当前会话启用了插件管理工具（`plugin_manager`），可以直接在对话框发送：
+# 或指定安装 v1.0.0 Release 标签版本
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.0
+```
 
-> *“请帮我安装本地路径 `D:\path\to\dsh-repo-radar` 下的 DSH 插件。”*
+> **DSH 桌面端（Desktop）提示**：通过 npm 全局安装的普通 `dsh` 命令不允许管理 `desktop` profile；请使用桌面端自带的 `dsh` 命令（需先打开一次桌面端初始化并完全退出后执行）：
+> ```bash
+> dsh plugin --profile desktop add https://github.com/xxll569/dsh-repo-radar.git
+> ```
+> 如果不想退出桌面端，直接用下面的 **方式二** 或 **方式三** 会更省事。
 
-安装完成后同样重启一次 DSH 即可生效。
+### 方式二：在 DSH 对话中一句话让助手安装
+
+如果当前会话启用了插件管理工具（`plugin_manager`），直接在对话框发送：
+
+> *“请帮我安装 DSH 插件：`https://github.com/xxll569/dsh-repo-radar.git`”*
+
+（如果已手动克隆到本地，也可以直接发本地目录路径。）安装完成后**重启一次 DSH** 即可生效。
+
+### 方式三：通过 DSH 图形界面安装（Git 地址或本地目录）
+
+1. 打开 **DeepSeek Harness** → 进入 **插件管理（Plugins）** → 点击 **添加插件（Add plugin）**。
+2. 直接填入 Git 地址 `https://github.com/xxll569/dsh-repo-radar.git`（或从 [Releases 页面](https://github.com/xxll569/dsh-repo-radar/releases) 下载压缩包解压 / `git clone` 后选择本地 `dsh-repo-radar` 目录）。
+3. 确认插件列表出现 **`DSH RepoRadar · 多 Git 仓库工作台`** 且处于 **已启用** 状态。
+4. **重启一次 DSH**（因为本插件注册了 Host 侧 `/api/multi-git.*` 路由与 `multi_git` 工具），进入任意会话即可在顶部视图栏点击 **`Git 仓库`**（`Git repos`）使用。
 
 ### 更新与卸载
 
-- **更新插件**：因为本地目录安装采用链接模式，在克隆目录内执行 `git pull`，然后重启 DSH 即可加载最新版本。
-- **停用 / 卸载**：在 DSH **插件管理** 中关闭或移除 `dsh-repo-radar` 即可移除 `Git 仓库` 标签页与 `multi_git` 工具，不会对你的业务代码仓库做任何修改。
+- **更新插件**：
+  - 通过 GitHub 地址安装的：移除后重新添加最新地址/标签，或执行 `dsh plugin --profile <name> update dsh-repo-radar`，再重启 DSH。
+  - 通过本地目录链接安装的：在目录内执行 `git pull`，再重启 DSH 即可。
+- **停用 / 卸载**：
+  - 执行 `dsh plugin --profile <name> remove dsh-repo-radar`，或在 DSH **插件管理**中关闭/移除 **`dsh-repo-radar`**。停用后会自动移除 `Git 仓库` 标签页与 `multi_git` 工具，不会改动你的任何业务仓库。
 
 ---
 
