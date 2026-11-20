@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./icon.svg" width="72" height="72" alt="DSH RepoRadar icon" />
+  <img src="./docs/logo.svg" width="72" height="72" alt="DSH RepoRadar icon" />
   <h1>DSH RepoRadar</h1>
   <p>
     <strong>IntelliJ IDEA-style multi-repository Git workbench plugin for DeepSeek Harness (DSH)</strong>
@@ -12,7 +12,7 @@
   <p>
     <img src="https://img.shields.io/badge/DeepSeek%20Harness-Plugin-3574F0" alt="DSH Plugin" />
     <img src="https://img.shields.io/npm/v/dsh-repo-radar?color=2A9D8F" alt="npm version" />
-    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
+    <img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache-2.0 License" />
   </p>
 </div>
 
@@ -124,4 +124,4 @@ dsh-repo-radar/
 
 ## License
 
-[MIT](./LICENSE)
+[Apache-2.0](./LICENSE)

@@ -2,7 +2,7 @@
   "name": "dsh-repo-radar",
   "version": "1.0.1",
   "type": "module",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "xxll569",
   "description": "An IntelliJ IDEA-style multi-repository Git workbench plugin for DeepSeek Harness (DSH). Automatically discovers nested subdirectories, submodules, and worktrees across your workspace with Commit tree, Side-by-Side Diff, Git Log, Branch & Stash management.",
   "keywords": [
