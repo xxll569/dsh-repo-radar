@@ -39,6 +39,8 @@
   - **Commit（变更提交）页**：
     - 压缩目录树（类似 IDEA *Compact Middle Packages*）与三态复选框，采用 IDEA 经典文件状态配色（修改蓝、新增/暂存绿、删除灰+删除线、未跟踪琥珀棕、冲突红），支持目录树 / 平铺切换。
     - 勾选即提交：支持 **Commit**、**Commit and Push...（提交并推送）**、**Amend（修补上次提交）**，以及批量/单文件 **Rollback（回滚）**（带二次确认）。
+    - **✨ AI 生成 Commit Message**：直接复用 DSH 当前已配置的模型，根据勾选变更与仓库历史提交风格一键生成规范提交说明，支持 **中文 / English / 自动** 语言切换。
+    - **IDEA 风格推送确认弹窗**：点击 Push 或 Commit and Push 时先展示本地→远端分支及所有待推送提交列表，核对后再推送。
   - **Diff 对比视图**：
     - 支持 **Side-by-side（并排对比）** 与 **Unified（统一视图）** 切换，带 3px 左侧行号变更色条、`+N -M` 统计与 `↑` / `↓` 变更块快速跳转。
   - **Git 日志页（经典三栏）**：
@@ -70,7 +72,7 @@ dsh plugin --profile web add dsh-repo-radar
 
 # 或直接从 GitHub / 指定 Release 标签安装
 dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
-dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.3
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.1.0
 ```
 
 > **DSH 桌面端（Desktop）提示**：通过 npm 全局安装的普通 `dsh` 命令不允许管理 `desktop` profile；请使用桌面端自带的 `dsh` 命令（需先打开一次桌面端初始化并完全退出后执行）：

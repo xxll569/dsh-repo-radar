@@ -1499,3 +1499,160 @@ export async function pushRepo(repoMeta, opts = {}) {
   }
   return { ok: true, output: summarizeGitOutput(res) || 'Push completed.', repo }
 }
+
+/** Read outgoing unpushed commits and upstream target for the Push confirmation dialog. */
+export async function readPushPreview(repoPath, opts = {}) {
+  const timeoutMs = Number(opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs)
+  const gitOpts = { timeoutMs, signal: opts.signal }
+
+  const [branchRes, upstreamRes, remotesRes] = await Promise.all([
+    runGit(repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'], gitOpts),
+    runGit(repoPath, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], gitOpts),
+    runGit(repoPath, ['remote'], gitOpts),
+  ])
+
+  const branch = branchRes.ok ? branchRes.stdout.trim() : 'HEAD'
+  const upstream = upstreamRes.ok ? upstreamRes.stdout.trim() : null
+  const remotes = remotesRes.ok ? remotesRes.stdout.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : []
+  const defaultRemote = remotes[0] || null
+
+  const fmt = '--format=%H%x1f%h%x1f%P%x1f%D%x1f%an%x1f%cI%x1f%aI%x1f%s%x1e'
+  let commits = []
+  let totalCount = 0
+
+  if (upstream) {
+    const [countRes, logRes] = await Promise.all([
+      runGit(repoPath, ['rev-list', '--count', `${upstream}..HEAD`], gitOpts),
+      runGit(repoPath, ['log', '--date-order', '-n', '50', fmt, `${upstream}..HEAD`], gitOpts),
+    ])
+    totalCount = countRes.ok ? Math.max(0, Number.parseInt(countRes.stdout.trim(), 10) || 0) : 0
+    if (logRes.ok) {
+      commits = parseCommits(logRes.stdout)
+      if (totalCount === 0) totalCount = commits.length
+    }
+  } else {
+    const logRes = await runGit(repoPath, ['log', '--date-order', '-n', '20', fmt, 'HEAD', '--not', '--remotes'], gitOpts)
+    if (logRes.ok) {
+      commits = parseCommits(logRes.stdout)
+      totalCount = commits.length
+    }
+  }
+
+  return {
+    ok: true,
+    branch,
+    upstream,
+    defaultRemote,
+    totalCount,
+    commits,
+  }
+}
+
+/**
+ * Collect a compact diff + untracked preview + recent commit subjects for AI commit message generation.
+ * Strictly bounds output size so LLM calls remain fast and within context limits.
+ */
+export async function collectCommitDiffContext(repoPath, params = {}, opts = {}) {
+  const timeoutMs = Number(opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs)
+  const maxDiffBytes = Number(opts.maxDiffBytes ?? 14000)
+  const maxUntrackedTotalBytes = 4000
+  const maxSingleUntrackedBytes = 1200
+
+  const rawPaths = Array.isArray(params.paths) ? params.paths.filter(validateRelativeFilePath) : []
+  const untrackedSet = new Set(
+    Array.isArray(params.untrackedPaths) ? params.untrackedPaths.filter(validateRelativeFilePath) : [],
+  )
+  const trackedPaths = rawPaths.filter(p => !untrackedSet.has(p))
+  const untrackedList = [...untrackedSet]
+
+  const [branchRes, recentRes] = await Promise.all([
+    runGit(repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'], { timeoutMs, signal: opts.signal }),
+    runGit(repoPath, ['log', '-n', '5', '--format=%s'], { timeoutMs, signal: opts.signal }),
+  ])
+  const branch = branchRes.ok ? branchRes.stdout.trim() : ''
+  const recentCommits = recentRes.ok
+    ? recentRes.stdout.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+    : []
+
+  const hasExplicitSelection = rawPaths.length > 0 || untrackedList.length > 0
+  let statText = ''
+  let diffText = ''
+  let diffTruncated = false
+
+  if (trackedPaths.length > 0 || !hasExplicitSelection) {
+    const pathArgs = trackedPaths.length > 0 ? ['--', ...trackedPaths] : []
+    const statRes = await runGit(repoPath, ['diff', '--stat', '--no-color', 'HEAD', ...pathArgs], { timeoutMs, signal: opts.signal })
+    if (statRes.ok) {
+      statText = statRes.stdout.trim()
+    } else {
+      // Fallback for unborn HEAD (initial commit).
+      const cachedStat = await runGit(repoPath, ['diff', '--cached', '--stat', '--no-color', ...pathArgs], { timeoutMs, signal: opts.signal })
+      if (cachedStat.ok) statText = cachedStat.stdout.trim()
+    }
+
+    const diffRes = await runGitBoundedStdout(
+      repoPath,
+      ['diff', '--no-color', '--unified=2', 'HEAD', ...pathArgs],
+      { timeoutMs, maxBytes: maxDiffBytes, signal: opts.signal },
+    )
+    if (diffRes.ok && diffRes.stdout.trim()) {
+      diffText = diffRes.stdout
+      diffTruncated = Boolean(diffRes.truncated)
+    } else {
+      const cachedDiff = await runGitBoundedStdout(
+        repoPath,
+        ['diff', '--cached', '--no-color', '--unified=2', ...pathArgs],
+        { timeoutMs, maxBytes: maxDiffBytes, signal: opts.signal },
+      )
+      if (cachedDiff.ok && cachedDiff.stdout.trim()) {
+        diffText = cachedDiff.stdout
+        diffTruncated = Boolean(cachedDiff.truncated)
+      }
+    }
+  }
+
+  const untrackedPreviews = []
+  let untrackedBytesUsed = 0
+  for (const relPath of untrackedList.slice(0, 15)) {
+    if (untrackedBytesUsed >= maxUntrackedTotalBytes) {
+      untrackedPreviews.push({ path: relPath, preview: '(omitted due to size limit)' })
+      continue
+    }
+    const absPath = path.resolve(repoPath, relPath)
+    if (!isPathInside(repoPath, absPath)) continue
+    try {
+      const handle = await fs.open(absPath, 'r')
+      try {
+        const cap = Math.min(maxSingleUntrackedBytes, maxUntrackedTotalBytes - untrackedBytesUsed)
+        const buf = Buffer.alloc(cap)
+        const { bytesRead } = await handle.read(buf, 0, cap, 0)
+        const slice = buf.subarray(0, bytesRead)
+        if (slice.includes(0)) {
+          untrackedPreviews.push({ path: relPath, preview: '(binary file)' })
+        } else {
+          untrackedBytesUsed += bytesRead
+          untrackedPreviews.push({ path: relPath, preview: slice.toString('utf8') })
+        }
+      } finally {
+        await handle.close()
+      }
+    } catch {
+      untrackedPreviews.push({ path: relPath, preview: '(unreadable)' })
+    }
+  }
+
+  if (!diffText.trim() && !statText && untrackedPreviews.length === 0) {
+    return { ok: false, error: 'No changes found to generate a commit message.' }
+  }
+
+  return {
+    ok: true,
+    branch,
+    recentCommits,
+    stat: statText,
+    diff: diffText,
+    diffTruncated,
+    untrackedFiles: untrackedList,
+    untrackedPreviews,
+  }
+}

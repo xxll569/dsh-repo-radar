@@ -39,6 +39,8 @@ By default, **DeepSeek Harness (DSH)** only detects `.git` at the workspace root
   - **Commit Tab**:
     - Compressed directory tree (*Compact Middle Packages* style) with tri-state checkboxes, IDEA file-status colors (`Modified`, `Added`, `Deleted`, `Unversioned`, `Conflict`), and Tree/Flat toggle.
     - Check-to-commit workflow supporting **Commit**, **Commit and Push...**, **Amend**, and batch or single-file **Rollback** with confirmation dialog.
+    - **AI Commit Message Generator**: One-click **AI Generate** using your configured DSH model (`中文` / `English` / `Auto`) based on checked file diffs and recent repo commit style.
+    - **IDEA-style Push Confirmation Dialog**: Preview local → remote branch mapping and every outgoing unpushed commit before pushing.
   - **Diff Viewer**:
     - **Side-by-Side** and **Unified** diff modes with 3px gutter change markers, line numbers, `+N -M` stats, and `↑` / `↓` hunk navigation.
   - **Git Log Tab (3-Pane)**:
@@ -69,7 +71,7 @@ dsh plugin --profile web add dsh-repo-radar
 
 # Or install directly from GitHub / a specific release tag
 dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
-dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.3
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.1.0
 ```
 
 > **Note for DSH Desktop users**: A standalone npm-installed `dsh` CLI rejects `--profile desktop`; use Desktop's own bundled `dsh` command (after opening Desktop once and quitting it):

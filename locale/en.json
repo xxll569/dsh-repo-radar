@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "DSH RepoRadar",
-    "description": "Adds an IntelliJ IDEA-style multi-repository Git workbench tab to DeepSeek Harness. Automatically discovers nested subdirectories, submodules, and worktrees across your workspace with a checkbox directory tree for Commit / Amend / Commit & Push, Side-by-Side & Unified Diff with hunk navigation, a 3-pane Git Log with branch filtering, ref badges, Cherry-pick, and Undo Commit, plus Branch & Stash popovers and the multi_git agent tool.",
+    "description": "Adds an IntelliJ IDEA-style multi-repository Git workbench tab to DeepSeek Harness. Automatically discovers nested subdirectories, submodules, and worktrees across your workspace with a checkbox directory tree for Commit / Amend / Commit & Push, one-click AI Commit Message generation (Chinese / English / Auto), an IDEA-style Push Commits confirmation dialog, Side-by-Side & Unified Diff with hunk navigation, a 3-pane Git Log with branch filtering, ref badges, Cherry-pick, and Undo Commit, plus Branch & Stash popovers and the multi_git agent tool.",
     "detail": "docs/DETAIL.md"
   }
 }

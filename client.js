@@ -69,6 +69,16 @@ window.__ModuleLoader__.load({
       'commit.expandTooltip': '全部展开',
       'commit.collapseTooltip': '全部折叠',
       'commit.refreshTooltip': '刷新变更',
+      'commit.aiGenerate': 'AI 生成',
+      'commit.aiGenerating': '生成中…',
+      'commit.aiCancel': '取消',
+      'commit.aiTooltip': '使用 DSH 当前 AI 模型根据勾选的变更生成 Commit Message',
+      'commit.aiLangTooltip': '选择 AI 生成提交说明的语言',
+      'commit.aiLangZh': '中文',
+      'commit.aiLangEn': 'English',
+      'commit.aiLangAuto': '自动',
+      'commit.aiNoChanges': '请先勾选要总结的变更文件',
+      'commit.aiFailed': 'AI 生成提交说明失败',
       'changes.filterPlaceholder': '筛选变更文件…',
       'changes.noFileMatches': '无匹配文件',
       'changes.conflicts': 'Merge Conflicts',
@@ -155,6 +165,15 @@ window.__ModuleLoader__.load({
       'modal.confirmRollback': 'Rollback',
       'modal.confirmDelete': 'Delete',
       'modal.confirmUndo': 'Undo Commit',
+      'modal.pushTitle': '推送提交 (Push Commits)',
+      'modal.pushConfirm': '推送 (Push)',
+      'modal.commitPushConfirm': '提交并推送',
+      'modal.pushLoading': '正在加载待推送提交…',
+      'modal.pushEmpty': '本地没有领先于远端的待推送提交。',
+      'modal.pushOutgoingCount': '即将推送 {count} 条提交：',
+      'modal.pushPendingTag': '待提交',
+      'modal.pushPendingFiles': '{count} 个文件',
+      'modal.pushNoUpstream': '尚未绑定上游分支，将推送至远端 {remote}',
       'feedback.dismiss': '关闭',
       'feedback.actionOk': '{action} 已完成',
       'feedback.fetchAllOk': '已完成全部 {count} 个仓库的 Fetch',
@@ -243,6 +262,16 @@ window.__ModuleLoader__.load({
       'commit.expandTooltip': 'Expand All',
       'commit.collapseTooltip': 'Collapse All',
       'commit.refreshTooltip': 'Refresh Changes',
+      'commit.aiGenerate': 'AI Generate',
+      'commit.aiGenerating': 'Generating…',
+      'commit.aiCancel': 'Cancel',
+      'commit.aiTooltip': 'Generate a commit message for checked files using DSH LLM',
+      'commit.aiLangTooltip': 'Language for AI-generated commit message',
+      'commit.aiLangZh': '中文',
+      'commit.aiLangEn': 'English',
+      'commit.aiLangAuto': 'Auto',
+      'commit.aiNoChanges': 'Check at least one changed file first',
+      'commit.aiFailed': 'Failed to generate commit message',
       'changes.filterPlaceholder': 'Filter changed files…',
       'changes.noFileMatches': 'No matching files',
       'changes.conflicts': 'Merge Conflicts',
@@ -329,6 +358,15 @@ window.__ModuleLoader__.load({
       'modal.confirmRollback': 'Rollback',
       'modal.confirmDelete': 'Delete',
       'modal.confirmUndo': 'Undo Commit',
+      'modal.pushTitle': 'Push Commits',
+      'modal.pushConfirm': 'Push',
+      'modal.commitPushConfirm': 'Commit and Push',
+      'modal.pushLoading': 'Loading outgoing commits…',
+      'modal.pushEmpty': 'No outgoing commits ahead of upstream.',
+      'modal.pushOutgoingCount': '{count} commit(s) to push:',
+      'modal.pushPendingTag': 'New Commit',
+      'modal.pushPendingFiles': '{count} file(s)',
+      'modal.pushNoUpstream': 'No upstream set yet; will push to {remote}',
       'feedback.dismiss': 'Dismiss',
       'feedback.actionOk': '{action} succeeded',
       'feedback.fetchAllOk': 'Fetched updates across {count} repositories',
@@ -990,11 +1028,58 @@ window.__ModuleLoader__.load({
 .mgv-commit-dock {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 9px 10px;
+  gap: 6px;
+  padding: 7px 10px 9px;
   background: var(--mgv-chrome);
   flex: none;
-  min-height: 84px;
+  min-height: 112px;
+}
+.mgv-commit-ai-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex: none;
+}
+.mgv-commit-ai-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.mgv-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--mgv-accent) 42%, var(--mgv-border));
+  background: color-mix(in srgb, var(--mgv-accent) 10%, var(--mgv-canvas));
+  color: var(--mgv-accent);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.mgv-ai-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--mgv-accent) 18%, var(--mgv-canvas));
+}
+.mgv-ai-btn:disabled {
+  opacity: 0.44;
+  cursor: not-allowed;
+}
+.mgv-ai-lang-select {
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid var(--mgv-border);
+  background: var(--mgv-canvas);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+.mgv-ai-lang-select:focus-visible {
+  border-color: var(--mgv-accent);
 }
 .mgv-commit-textarea {
   width: 100%;
@@ -1498,6 +1583,67 @@ window.__ModuleLoader__.load({
 .mgv-modal-title { margin: 0; font-size: 15.5px; font-weight: 600; }
 .mgv-modal-body { margin: 0; font-size: 13.5px; color: var(--dsw-alias-label-secondary); word-break: break-word; }
 .mgv-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.mgv-push-modal {
+  width: 560px;
+  max-width: 96vw;
+}
+.mgv-push-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--mgv-border);
+  background: var(--mgv-chrome);
+  font-size: 12.5px;
+}
+.mgv-push-branch {
+  font-family: var(--mgv-code-font);
+  font-weight: 600;
+  color: var(--mgv-accent);
+}
+.mgv-push-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--mgv-border);
+  border-radius: 5px;
+  background: var(--mgv-canvas);
+}
+.mgv-push-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--mgv-border);
+  font-size: 12.5px;
+}
+.mgv-push-item:last-child { border-bottom: none; }
+.mgv-push-item-new {
+  background: color-mix(in srgb, var(--mgv-accent) 9%, var(--mgv-canvas));
+}
+.mgv-push-item-main {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+.mgv-push-item-subj {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.mgv-push-item-meta {
+  font-size: 11.5px;
+  color: var(--dsw-alias-label-secondary);
+  white-space: nowrap;
+  flex: none;
+}
 
 @container (max-width: 1120px) {
   .mgv-log-branches, .mgv-log-branches-splitter { display: none; }
@@ -1630,13 +1776,28 @@ window.__ModuleLoader__.load({
       funnel: () => h(SvgIcon, { size: 13, d: 'M2.5 3.5h11l-4.2 5v4l-2.6 1.2V8.5l-4.2-5Z' }),
       plus: () => h(SvgIcon, { size: 12, d: 'M8 3v10M3 8h10' }),
       close: () => h(SvgIcon, { size: 13, d: 'M4 4l8 8M12 4l-8 8' }),
+      sparkles: () => h(SvgIcon, { size: 14, children: [
+        h('path', { key: 1, d: 'M8 1.8 9.4 5.6 13.2 7 9.4 8.4 8 12.2 6.6 8.4 2.8 7 6.6 5.6 8 1.8Z' }),
+        h('path', { key: 2, d: 'M12.8 11.2 13.4 12.8 15 13.4 13.4 14 12.8 15.6 12.2 14 10.6 13.4 12.2 12.8 12.8 11.2Z' }),
+      ] }),
     };
+
+    const AI_LANG_STORAGE_KEY = 'mgv.aiCommitLang.v1';
+    function loadSavedAiLang() {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          const val = localStorage.getItem(AI_LANG_STORAGE_KEY);
+          if (val === 'zh' || val === 'en' || val === 'auto') return val;
+        }
+      } catch { /* ignore */ }
+      return 'zh';
+    }
 
     const LAYOUT_STORAGE_KEY = 'mgv.layout.v1';
     const DEFAULT_LAYOUT = {
       railWidth: 236,
       commitLeftWidth: 390,
-      commitDockHeight: 120,
+      commitDockHeight: 148,
       logBranchesWidth: 204,
       logInspectorWidth: 500,
       logFilesHeight: 230,
@@ -2303,6 +2464,9 @@ window.__ModuleLoader__.load({
       const [logCollapsedDirs, setLogCollapsedDirs] = useState({});
 
       const [confirmModal, setConfirmModal] = useState(null);
+      const [pushModal, setPushModal] = useState(null);
+      const [aiLang, setAiLang] = useState(loadSavedAiLang);
+      const [aiGenRepoPath, setAiGenRepoPath] = useState(null);
 
       const scanAbortRef = useRef(null);
       const fileDiffAbortRef = useRef(null);
@@ -2312,6 +2476,9 @@ window.__ModuleLoader__.load({
       const commitDetailsSeqRef = useRef(0);
       const commitFileDiffAbortRef = useRef(null);
       const commitFileDiffSeqRef = useRef(0);
+      const aiGenAbortRef = useRef(null);
+      const pushPreviewAbortRef = useRef(null);
+      const commitTextareaRef = useRef(null);
       const popoverRef = useRef(null);
       const prevRunningRef = useRef(sessionRunning);
       const reposRef = useRef(repos);
@@ -2535,7 +2702,128 @@ window.__ModuleLoader__.load({
         if (logAbortRef.current) logAbortRef.current.abort();
         if (commitDetailsAbortRef.current) commitDetailsAbortRef.current.abort();
         if (commitFileDiffAbortRef.current) commitFileDiffAbortRef.current.abort();
+        if (aiGenAbortRef.current) aiGenAbortRef.current.abort();
+        if (pushPreviewAbortRef.current) pushPreviewAbortRef.current.abort();
       }, []);
+
+      const closePushDialog = useCallback(() => {
+        if (pushPreviewAbortRef.current) {
+          pushPreviewAbortRef.current.abort();
+          pushPreviewAbortRef.current = null;
+        }
+        setPushModal(null);
+      }, []);
+
+      const openPushDialog = useCallback(async (repoObj, commitAndPushPayload = null) => {
+        if (!repoObj) return;
+        if (pushPreviewAbortRef.current) pushPreviewAbortRef.current.abort();
+        const ac = new AbortController();
+        pushPreviewAbortRef.current = ac;
+
+        const fallbackCommits = (repoObj.ahead > 0 && Array.isArray(repoObj.commits))
+          ? repoObj.commits.slice(0, repoObj.ahead)
+          : [];
+        const defaultRemote = (Array.isArray(repoObj.remotes) && repoObj.remotes[0])
+          ? repoObj.remotes[0].name
+          : 'origin';
+
+        setPushModal({
+          repo: repoObj,
+          commitPayload: commitAndPushPayload,
+          loading: true,
+          branch: repoObj.branch || 'HEAD',
+          upstream: repoObj.upstream || null,
+          defaultRemote,
+          totalCount: repoObj.ahead || fallbackCommits.length,
+          commits: fallbackCommits,
+          error: null,
+        });
+
+        try {
+          const res = await postApi('api/multi-git.push-preview', {
+            repoPath: repoObj.path,
+            rootPath,
+          }, ac.signal);
+          if (ac.signal.aborted) return;
+          if (res.ok) {
+            setPushModal((prev) => (prev && prev.repo.path === repoObj.path
+              ? {
+                ...prev,
+                loading: false,
+                branch: res.branch || prev.branch,
+                upstream: res.upstream || null,
+                defaultRemote: res.defaultRemote || prev.defaultRemote,
+                totalCount: typeof res.totalCount === 'number' ? res.totalCount : (res.commits || []).length,
+                commits: Array.isArray(res.commits) ? res.commits : prev.commits,
+              }
+              : prev));
+          } else {
+            // Keep fallback commits if Host has not restarted yet.
+            setPushModal((prev) => (prev && prev.repo.path === repoObj.path ? { ...prev, loading: false } : prev));
+          }
+        } catch {
+          if (!ac.signal.aborted) {
+            setPushModal((prev) => (prev && prev.repo.path === repoObj.path ? { ...prev, loading: false } : prev));
+          }
+        } finally {
+          if (pushPreviewAbortRef.current === ac) pushPreviewAbortRef.current = null;
+        }
+      }, [rootPath]);
+
+      const handleAiLangChange = useCallback((nextLang) => {
+        setAiLang(nextLang);
+        try {
+          if (typeof localStorage !== 'undefined') localStorage.setItem(AI_LANG_STORAGE_KEY, nextLang);
+        } catch { /* ignore */ }
+      }, []);
+
+      const cancelAiCommitMsg = useCallback(() => {
+        if (aiGenAbortRef.current) {
+          aiGenAbortRef.current.abort();
+          aiGenAbortRef.current = null;
+        }
+        setAiGenRepoPath(null);
+      }, []);
+
+      const generateAiCommitMsg = useCallback(async (repoObj, paths, untrackedPaths) => {
+        if (!repoObj) return;
+        if (aiGenAbortRef.current) aiGenAbortRef.current.abort();
+        const ac = new AbortController();
+        aiGenAbortRef.current = ac;
+        setAiGenRepoPath(repoObj.path);
+        setFeedback(null);
+        try {
+          const res = await postApi('api/multi-git.generate-commit-msg', {
+            sessionId,
+            repoPath: repoObj.path,
+            rootPath,
+            paths,
+            untrackedPaths,
+            language: aiLang,
+          }, ac.signal);
+          if (ac.signal.aborted) return;
+          if (!res.ok) {
+            const errText = res.status === 404 && res.error === 'HTTP 404'
+              ? `${t('commit.aiFailed')} (HTTP 404 — 请完全退出并重启一次 DeepSeek Harness 以加载新版后端接口)`
+              : (res.error || t('commit.aiFailed'));
+            setFeedback({ kind: 'error', text: `[${repoObj.name}] ${errText}` });
+            return;
+          }
+          if (res.message) {
+            setCommitDrafts((prev) => ({ ...prev, [repoObj.path]: res.message }));
+            setTimeout(() => {
+              if (commitTextareaRef.current) commitTextareaRef.current.focus();
+            }, 0);
+          }
+        } catch (err) {
+          if (!ac.signal.aborted) {
+            setFeedback({ kind: 'error', text: `[${repoObj.name}] ${err instanceof Error ? err.message : String(err)}` });
+          }
+        } finally {
+          if (aiGenAbortRef.current === ac) aiGenAbortRef.current = null;
+          setAiGenRepoPath((cur) => (cur === repoObj.path ? null : cur));
+        }
+      }, [sessionId, rootPath, aiLang, t]);
 
       const setRepoBusy = useCallback((repoPath, actionOrNull) => {
         setBusyByRepo((prev) => {
@@ -3090,18 +3378,50 @@ window.__ModuleLoader__.load({
               orientation: 'horizontal',
               side: 'bottom',
               size: layout.commitDockHeight,
-              min: 84,
-              max: 320,
+              min: 112,
+              max: 340,
               defaultSize: DEFAULT_LAYOUT.commitDockHeight,
               title: t('splitter.dragTip'),
               onChange: (next) => { updateLayout({ commitDockHeight: next }); },
             }),
             h('div', { className: 'mgv-commit-dock', style: { height: `${layout.commitDockHeight}px` } },
+              h('div', { className: 'mgv-commit-ai-bar' },
+                h('div', { className: 'mgv-commit-ai-group' },
+                  aiGenRepoPath === selectedRepo.path
+                    ? h('button', {
+                      type: 'button',
+                      className: 'mgv-ai-btn',
+                      onClick: cancelAiCommitMsg,
+                    }, Icons.sparkles(), h('span', null, `${t('commit.aiGenerating')} (${t('commit.aiCancel')})`))
+                    : h('button', {
+                      type: 'button',
+                      className: 'mgv-ai-btn',
+                      title: !hasAny || allCheckedPaths.length === 0 ? t('commit.aiNoChanges') : t('commit.aiTooltip'),
+                      disabled: Boolean(selectedBusy) || Boolean(aiGenRepoPath) || !hasAny || allCheckedPaths.length === 0,
+                      onClick: () => {
+                        void generateAiCommitMsg(selectedRepo, allCheckedPaths, checkedUntracked);
+                      },
+                    }, Icons.sparkles(), h('span', null, t('commit.aiGenerate'))),
+                  h('select', {
+                    className: 'mgv-ai-lang-select',
+                    value: aiLang,
+                    title: t('commit.aiLangTooltip'),
+                    'aria-label': t('commit.aiLangTooltip'),
+                    disabled: Boolean(aiGenRepoPath),
+                    onChange: (e) => { handleAiLangChange(e.target.value); },
+                  },
+                    h('option', { value: 'zh' }, t('commit.aiLangZh')),
+                    h('option', { value: 'en' }, t('commit.aiLangEn')),
+                    h('option', { value: 'auto' }, t('commit.aiLangAuto')),
+                  ),
+                ),
+              ),
               h('textarea', {
+                ref: commitTextareaRef,
                 className: 'mgv-commit-textarea',
                 value: commitMsg,
                 placeholder: t('commit.placeholder'),
-                disabled: Boolean(selectedBusy),
+                disabled: Boolean(selectedBusy) || aiGenRepoPath === selectedRepo.path,
                 onChange: (e) => {
                   const val = e.target.value;
                   setCommitDrafts((prev) => ({ ...prev, [selectedRepo.path]: val }));
@@ -3154,9 +3474,13 @@ window.__ModuleLoader__.load({
                     disabled: !canCommit || !hasRemote,
                     title: !hasRemote ? t('detail.noRemote') : undefined,
                     onClick: () => {
-                      void runGitAction('commit_selected', {
-                        paths: allCheckedPaths, untrackedPaths: checkedUntracked, message: commitMsg, amend: isAmend, push: true,
-                      }, selectedRepo);
+                      void openPushDialog(selectedRepo, {
+                        paths: allCheckedPaths,
+                        untrackedPaths: checkedUntracked,
+                        message: commitMsg,
+                        amend: isAmend,
+                        push: true,
+                      });
                     },
                   }, t('commit.submitPush')),
                 ),
@@ -4100,7 +4424,7 @@ window.__ModuleLoader__.load({
                   className: 'mgv-icon-btn',
                   title: pullPushHint || t('header.pushTooltip'),
                   disabled: Boolean(selectedBusy) || !canPullPush,
-                  onClick: () => { void runGitAction('push', {}, selectedRepo); },
+                  onClick: () => { void openPushDialog(selectedRepo, null); },
                 }, Icons.push()),
                 h('button', {
                   type: 'button',
@@ -4183,6 +4507,95 @@ window.__ModuleLoader__.load({
           : null,
         renderShellBody(),
         renderActiveModal(),
+        pushModal
+          ? h('div', {
+            className: 'mgv-modal-backdrop',
+            onClick: (e) => { if (e.target === e.currentTarget) closePushDialog(); },
+            onKeyDown: (e) => { if (e.key === 'Escape') closePushDialog(); },
+          },
+            h('div', {
+              className: 'mgv-modal mgv-push-modal',
+              role: 'dialog',
+              'aria-modal': 'true',
+              'aria-labelledby': 'mgv-push-modal-title',
+            },
+              h('h4', { id: 'mgv-push-modal-title', className: 'mgv-modal-title' },
+                `${t('modal.pushTitle')} — ${pushModal.repo.name}`,
+              ),
+              h('div', { className: 'mgv-push-route' },
+                Icons.branch('var(--mgv-accent)'),
+                h('span', { className: 'mgv-push-branch' }, pushModal.branch),
+                h('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, '→'),
+                h('span', { className: 'mgv-push-branch' }, pushModal.upstream || `${pushModal.defaultRemote || 'origin'}/${pushModal.branch}`),
+                !pushModal.upstream
+                  ? h('span', { style: { color: 'var(--dsw-alias-label-secondary)', fontSize: '11.5px', marginLeft: 'auto' } },
+                    t('modal.pushNoUpstream', { remote: pushModal.defaultRemote || 'origin' }),
+                  )
+                  : null,
+              ),
+              pushModal.loading
+                ? h('div', { className: 'mgv-modal-body' }, t('modal.pushLoading'))
+                : (() => {
+                  const pendingSubject = pushModal.commitPayload
+                    ? String(pushModal.commitPayload.message || '').split(/\r?\n/)[0].trim()
+                    : null;
+                  const totalOut = (pushModal.totalCount || 0) + (pushModal.commitPayload && !pushModal.commitPayload.amend ? 1 : 0);
+                  const hasList = Boolean(pendingSubject) || (pushModal.commits && pushModal.commits.length > 0);
+                  if (!hasList) {
+                    return h('p', { className: 'mgv-modal-body' }, t('modal.pushEmpty'));
+                  }
+                  return h(React.Fragment, null,
+                    h('div', { style: { fontSize: '12.5px', color: 'var(--dsw-alias-label-secondary)' } },
+                      t('modal.pushOutgoingCount', { count: Math.max(totalOut, (pushModal.commits || []).length + (pendingSubject ? 1 : 0)) }),
+                    ),
+                    h('div', { className: 'mgv-push-list' },
+                      pendingSubject
+                        ? h('div', { className: 'mgv-push-item mgv-push-item-new' },
+                          h('div', { className: 'mgv-push-item-main' },
+                            h('span', { className: 'mgv-ref-pill mgv-ref-head' }, t('modal.pushPendingTag')),
+                            h('span', { className: 'mgv-push-item-subj', title: pendingSubject }, pendingSubject),
+                          ),
+                          h('span', { className: 'mgv-push-item-meta' },
+                            t('modal.pushPendingFiles', { count: (pushModal.commitPayload.paths || []).length }),
+                          ),
+                        )
+                        : null,
+                      (pushModal.commits || []).map((c) => h('div', { key: c.hash, className: 'mgv-push-item' },
+                        h('div', { className: 'mgv-push-item-main' },
+                          h('span', { className: 'mgv-ref-pill mgv-ref-local' }, c.shortHash),
+                          h('span', { className: 'mgv-push-item-subj', title: c.subject }, c.subject),
+                        ),
+                        h('span', { className: 'mgv-push-item-meta' },
+                          `${c.author} · ${formatRelativeIso(c.committerIso || c.authorIso || c.isoDate, t)}`,
+                        ),
+                      )),
+                    ),
+                  );
+                })(),
+              h('div', { className: 'mgv-modal-actions' },
+                h('button', {
+                  type: 'button',
+                  className: 'mgv-btn',
+                  onClick: closePushDialog,
+                }, t('modal.cancel')),
+                h('button', {
+                  type: 'button',
+                  className: 'mgv-btn mgv-btn-primary',
+                  autoFocus: true,
+                  onClick: () => {
+                    const target = pushModal;
+                    closePushDialog();
+                    if (target.commitPayload) {
+                      void runGitAction('commit_selected', target.commitPayload, target.repo);
+                    } else {
+                      void runGitAction('push', {}, target.repo);
+                    }
+                  },
+                }, pushModal.commitPayload ? t('modal.commitPushConfirm') : t('modal.pushConfirm')),
+              ),
+            ),
+          )
+          : null,
       );
     }
 

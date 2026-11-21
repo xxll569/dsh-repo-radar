@@ -3,6 +3,7 @@ import {
   checkoutBranch,
   checkoutRemoteBranch,
   cherryPickCommit,
+  collectCommitDiffContext,
   commitSelected,
   commitStaged,
   createBranch,
@@ -21,6 +22,7 @@ import {
   readCommitDiff,
   readCommitFileDiff,
   readFileDiff,
+  readPushPreview,
   refreshRepositoryList,
   rollbackFiles,
   scanWorkspaceRepositories,
@@ -44,7 +46,73 @@ const FILE_DIFF_PATH = '/api/multi-git.diff'
 const COMMIT_DETAILS_PATH = '/api/multi-git.commit-details'
 const COMMIT_FILE_DIFF_PATH = '/api/multi-git.commit-file-diff'
 const COMMIT_DIFF_PATH = '/api/multi-git.commit-diff'
+const PUSH_PREVIEW_PATH = '/api/multi-git.push-preview'
+const GENERATE_COMMIT_MSG_PATH = '/api/multi-git.generate-commit-msg'
 const ACTION_PATH = '/api/multi-git.action'
+
+function cleanGeneratedCommitMessage(raw) {
+  let text = String(raw || '').trim()
+  // Strip wrapping markdown code fences if the model included them.
+  const fenced = /^```(?:[a-zA-Z0-9_-]*)\r?\n([\s\S]*?)\r?\n```$/m.exec(text)
+  if (fenced) text = fenced[1].trim()
+  text = text.replace(/^["'`]+|["'`]+$/g, '').trim()
+  return text
+}
+
+function buildCommitPrompt(diffCtx, language) {
+  const lang = language === 'zh' || language === 'en' ? language : 'auto'
+  const langRule = lang === 'zh'
+    ? 'Write the commit subject and any body in Simplified Chinese (keep the Conventional Commits type/scope in English, e.g. `feat(ui): 新增AI生成提交说明`).'
+    : lang === 'en'
+      ? 'Write the commit subject and any body in concise English (Conventional Commits format, e.g. `feat(ui): add AI commit message generator`).'
+      : 'Match the language of the repository recent commits below (default to Simplified Chinese if unclear), using Conventional Commits format (`<type>(<scope>): <subject>`).'
+
+  const system = [
+    'You are a senior software engineer writing a Git commit message from the supplied diff.',
+    'Follow Conventional Commits (`feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`, `perf`, `build`, `ci`).',
+    langRule,
+    'Keep the first line (subject) concise, specific, and under 72 characters.',
+    'For small or focused changes, output ONLY a single subject line. For multi-part changes, you may add a blank line followed by 2 to 4 short bullet points starting with `- `.',
+    'Output ONLY the raw commit message text: no markdown code fences, no quotes, no preamble, and no explanation.',
+  ].join('\n')
+
+  const parts = []
+  if (diffCtx.branch) parts.push(`Branch: ${diffCtx.branch}`)
+  if (diffCtx.recentCommits && diffCtx.recentCommits.length > 0) {
+    parts.push(`Recent commits (for style reference):\n${diffCtx.recentCommits.map(s => `- ${s}`).join('\n')}`)
+  }
+  if (diffCtx.stat) {
+    parts.push(`Diff stat:\n${diffCtx.stat}`)
+  }
+  if (diffCtx.diff) {
+    parts.push(`Git diff${diffCtx.diffTruncated ? ' (truncated)' : ''}:\n${diffCtx.diff}`)
+  }
+  if (diffCtx.untrackedPreviews && diffCtx.untrackedPreviews.length > 0) {
+    const blocks = diffCtx.untrackedPreviews.map(item => `--- New untracked file: ${item.path} ---\n${item.preview}`)
+    parts.push(`New untracked files:\n${blocks.join('\n\n')}`)
+  }
+  return { system, userText: parts.join('\n\n') }
+}
+
+function resolveLlmRoute(llm, defaultModelService) {
+  if (!llm) return null
+  const sel = defaultModelService?.currentSelection?.()
+  if (sel && typeof sel.provider === 'string' && sel.provider && typeof sel.model === 'string' && sel.model) {
+    return { provider: sel.provider, model: sel.model }
+  }
+  try {
+    const models = typeof llm.listModels === 'function' ? llm.listModels() : []
+    if (Array.isArray(models) && models.length > 0) {
+      const first = models[0]
+      if (first && first.provider && (first.id || first.model)) {
+        return { provider: first.provider, model: first.id || first.model }
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
 
 function jsonResponse(status, payload) {
   return new Response(JSON.stringify(payload), {
@@ -371,6 +439,117 @@ class MultiGitService {
     }
     return { status: result.ok ? 200 : 400, action, ...result }
   }
+
+  async pushPreview(params = {}, signal) {
+    const meta = this.resolveKnownRepo(params.repoPath, params.rootPath)
+    if (!meta) {
+      return { ok: false, status: 404, error: 'Repository is not in the current scan set; please rescan.' }
+    }
+    const res = await readPushPreview(meta.path, { ...this.options, signal })
+    return { status: res.ok ? 200 : 400, ...res }
+  }
+
+  async generateCommitMessage(params = {}, signal) {
+    const meta = this.resolveKnownRepo(params.repoPath, params.rootPath)
+    if (!meta) {
+      return { ok: false, status: 404, error: 'Repository is not in the current scan set; please rescan.' }
+    }
+
+    const llm = this.llmService || this.ctx?.llm
+    if (!llm || typeof llm.stream !== 'function') {
+      return { ok: false, status: 503, error: 'DSH LLM service is not available in this profile.' }
+    }
+    const route = resolveLlmRoute(llm, this.defaultModelService || this.ctx?.agentDefaultModel)
+    if (!route) {
+      return { ok: false, status: 503, error: 'No configured LLM provider/model found in DSH.' }
+    }
+
+    const diffCtx = await collectCommitDiffContext(meta.path, {
+      paths: params.paths,
+      untrackedPaths: params.untrackedPaths,
+    }, { ...this.options, signal })
+    if (!diffCtx.ok) {
+      return { ok: false, status: 400, error: diffCtx.error }
+    }
+
+    const { system, userText } = buildCommitPrompt(diffCtx, params.language)
+    const timeoutController = new AbortController()
+    const timer = setTimeout(() => { timeoutController.abort(new Error('AI commit message generation timed out')) }, 35000)
+    const onCallerAbort = () => { timeoutController.abort(signal?.reason || new Error('Aborted')) }
+    if (signal) {
+      if (signal.aborted) {
+        clearTimeout(timer)
+        return { ok: false, status: 499, error: 'Generation cancelled.' }
+      }
+      signal.addEventListener('abort', onCallerAbort, { once: true })
+    }
+
+    try {
+      const messages = [{ role: 'user', content: [{ type: 'text', text: userText }] }]
+      const callSignal = timeoutController.signal
+      let streamIter
+      if (typeof llm.prepareCall === 'function') {
+        const prepared = await llm.prepareCall(
+          { provider: route.provider, model: route.model, maxTokens: 512 },
+          callSignal,
+          (controls, modelInfo) => {
+            const leastEffort = modelInfo?.reasoning?.efforts?.[0]?.id
+            return leastEffort !== undefined ? { ...controls, reasoningEffort: leastEffort } : controls
+          },
+        )
+        streamIter = prepared.stream({
+          ...prepared.config,
+          messages,
+          system,
+          signal: callSignal,
+        })
+      } else {
+        streamIter = llm.stream({
+          provider: route.provider,
+          model: route.model,
+          maxTokens: 512,
+          messages,
+          system,
+          signal: callSignal,
+        })
+      }
+
+      let collected = ''
+      let finishReason = null
+      for await (const chunk of streamIter) {
+        if (!chunk || typeof chunk !== 'object') continue
+        if (chunk.type === 'text-delta' && typeof chunk.text === 'string') {
+          collected += chunk.text
+        } else if (chunk.type === 'finish') {
+          finishReason = chunk.reason
+        }
+      }
+
+      if (finishReason && (finishReason.kind === 'error' || finishReason.kind === 'aborted')) {
+        const errMsg = finishReason.failure?.message || 'LLM request failed.'
+        return { ok: false, status: finishReason.kind === 'aborted' ? 499 : 502, error: errMsg }
+      }
+
+      const message = cleanGeneratedCommitMessage(collected)
+      if (!message) {
+        return { ok: false, status: 502, error: 'Model returned an empty commit message.' }
+      }
+
+      return {
+        status: 200,
+        ok: true,
+        message,
+        provider: route.provider,
+        model: route.model,
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return { ok: false, status: timeoutController.signal.aborted ? 499 : 502, error: msg }
+    } finally {
+      clearTimeout(timer)
+      if (signal) signal.removeEventListener('abort', onCallerAbort)
+    }
+  }
 }
 
 function formatToolSummary(action, result) {
@@ -398,6 +577,9 @@ function formatToolSummary(action, result) {
     ]
     return lines.join('\n')
   }
+  if (action === 'generate_commit_message') {
+    return result.message || ''
+  }
   if (action === 'diff' || action === 'commit_diff' || action === 'commit_file_diff') {
     if (result.binary) return '[binary file]'
     if (result.empty) return '(no diff)'
@@ -424,8 +606,15 @@ export function apply(ctx, config = {}) {
       fetch: async (request) => {
         const body = await parseJsonBody(request)
         if (!body) return jsonResponse(400, { ok: false, error: 'Invalid JSON request body.' })
-        const { status, ...payload } = await handler(body, request.signal)
-        return jsonResponse(status, payload)
+        try {
+          const { status, ...payload } = await handler(body, request.signal)
+          return jsonResponse(status, payload)
+        } catch (err) {
+          return jsonResponse(500, {
+            ok: false,
+            error: err instanceof Error ? err.message : String(err),
+          })
+        }
       },
     })
   }
@@ -439,7 +628,27 @@ export function apply(ctx, config = {}) {
   registerJsonPost(COMMIT_DETAILS_PATH, (b, s) => service.commitDetails(b, s))
   registerJsonPost(COMMIT_FILE_DIFF_PATH, (b, s) => service.commitFileDiff(b, s))
   registerJsonPost(COMMIT_DIFF_PATH, (b, s) => service.commitDiff(b, s))
+  registerJsonPost(PUSH_PREVIEW_PATH, (b, s) => service.pushPreview(b, s))
+  registerJsonPost(GENERATE_COMMIT_MSG_PATH, (b, s) => service.generateCommitMessage(b, s))
   registerJsonPost(ACTION_PATH, (b, s) => service.runAction(b, s))
+
+  ctx.inject(['llm'], (llmCtx) => {
+    llmCtx.effect(() => {
+      service.llmService = llmCtx.llm
+      return () => {
+        if (service.llmService === llmCtx.llm) service.llmService = null
+      }
+    }, 'multi-git-view: llm binding')
+  })
+
+  ctx.inject(['agentDefaultModel'], (modelCtx) => {
+    modelCtx.effect(() => {
+      service.defaultModelService = modelCtx.agentDefaultModel
+      return () => {
+        if (service.defaultModelService === modelCtx.agentDefaultModel) service.defaultModelService = null
+      }
+    }, 'multi-git-view: default model binding')
+  })
 
   ctx.inject(['tools'], (toolCtx) => {
     toolCtx.effect(() => toolCtx.tools.register({
@@ -466,6 +675,7 @@ export function apply(ctx, config = {}) {
               'rollback',
               'commit',
               'commit_selected',
+              'generate_commit_message',
               'checkout',
               'checkout_remote',
               'create_branch',
@@ -480,6 +690,7 @@ export function apply(ctx, config = {}) {
               'fetch',
               'pull',
               'push',
+              'push_preview',
             ],
             description: 'Operation to run.',
           },
@@ -502,6 +713,7 @@ export function apply(ctx, config = {}) {
           ref: { type: 'string', description: 'Stash ref such as stash@{0}.' },
           query: { type: 'string', description: 'Commit message filter for action="log".' },
           author: { type: 'string', description: 'Author filter for action="log".' },
+          language: { type: 'string', enum: ['auto', 'zh', 'en'], description: 'Language for action="generate_commit_message".' },
           limit: { type: 'integer', description: 'Page size for action="log".' },
           skip: { type: 'integer', description: 'Offset for action="log".' },
         },
@@ -545,6 +757,8 @@ export function apply(ctx, config = {}) {
         else if (args.action === 'commit_details') res = await service.commitDetails(params, signal)
         else if (args.action === 'commit_file_diff') res = await service.commitFileDiff(params, signal)
         else if (args.action === 'commit_diff') res = await service.commitDiff(params, signal)
+        else if (args.action === 'push_preview') res = await service.pushPreview(params, signal)
+        else if (args.action === 'generate_commit_message') res = await service.generateCommitMessage(params, signal)
         else res = await service.runAction(params, signal)
         const { status: _status, ...clean } = res
         return clean
