@@ -69,7 +69,7 @@ dsh plugin --profile web add dsh-repo-radar
 
 # Or install directly from GitHub / a specific release tag
 dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git
-dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.2
+dsh plugin --profile web add https://github.com/xxll569/dsh-repo-radar.git#v1.0.3
 ```
 
 > **Note for DSH Desktop users**: A standalone npm-installed `dsh` CLI rejects `--profile desktop`; use Desktop's own bundled `dsh` command (after opening Desktop once and quitting it):

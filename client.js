@@ -2823,7 +2823,7 @@ window.__ModuleLoader__.load({
         return h('div', {
           key: `${area}:${file.path}`,
           className: `mgv-tree-row${testRowCls}${isSelected ? ' mgv-tree-row-selected' : ''}`,
-          style: depth > 0 ? { paddingLeft: `${depth * 14 + 6}px` } : undefined,
+          style: { paddingLeft: `${8 + depth * 16 + 22}px` },
         },
           h(TriCheckbox, {
             checked: isChecked,
@@ -2871,7 +2871,7 @@ window.__ModuleLoader__.load({
         const testDirCls = isTestDirNode(dirNode) ? ' mgv-tree-row-test' : '';
 
         return h('div', { key: dirStateKey },
-          h('div', { className: `mgv-tree-row${testDirCls}`, style: { paddingLeft: `${depth * 14 + 4}px` } },
+          h('div', { className: `mgv-tree-row${testDirCls}`, style: { paddingLeft: `${8 + depth * 16}px` } },
             h('button', {
               type: 'button',
               className: 'mgv-tree-caret',
@@ -3213,7 +3213,7 @@ window.__ModuleLoader__.load({
         const isCollapsed = Boolean(logCollapsedDirs[key]);
         const testDirCls = isTestDirNode(dirNode) ? ' mgv-tree-row-test' : '';
         return h('div', { key },
-          h('div', { className: `mgv-tree-row${testDirCls}`, style: { paddingLeft: `${depth * 14 + 4}px` } },
+          h('div', { className: `mgv-tree-row${testDirCls}`, style: { paddingLeft: `${8 + depth * 16}px` } },
             h('button', {
               type: 'button',
               className: 'mgv-tree-caret',
@@ -3245,7 +3245,7 @@ window.__ModuleLoader__.load({
         return h('div', {
           key: f.path,
           className: `mgv-tree-row${testRowCls}${isSel ? ' mgv-tree-row-selected' : ''}`,
-          style: { paddingLeft: `${depth * 14 + 18}px` },
+          style: { paddingLeft: `${8 + depth * 16 + 22}px` },
         },
           h('button', {
             type: 'button',
